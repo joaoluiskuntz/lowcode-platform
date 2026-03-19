@@ -1,0 +1,124 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #eef2f7;
+}
+
+.studio-shell {
+  min-height: 100vh;
+}
+
+.studio-topbar {
+  z-index: 1030;
+}
+
+.studio-grid {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 360px;
+  min-height: calc(100vh - 57px);
+}
+
+.studio-panel {
+  max-height: calc(100vh - 57px);
+}
+
+.studio-canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.studio-canvas {
+  flex: 1;
+  overflow: auto;
+}
+
+.phone-frame {
+  width: min(100%, 420px);
+  background: #111827;
+  border-radius: 2rem;
+  padding: 14px;
+}
+
+.phone-screen {
+  min-height: 760px;
+  background: white;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.editor-node {
+  position: relative;
+  margin-bottom: .75rem;
+  border: 1px dashed transparent;
+  border-radius: var(--studio-radius, .5rem);
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.editor-node:hover {
+  border-color: rgba(13, 110, 253, .35);
+}
+
+.editor-node.selected {
+  border-color: var(--studio-primary, #0d6efd);
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+
+.column-canvas {
+  min-height: 72px;
+  padding: .5rem;
+  border-radius: var(--studio-radius, .5rem);
+  background: rgba(13, 110, 253, .04);
+}
+
+.empty-slot {
+  display: grid;
+  place-items: center;
+  min-height: 72px;
+  border: 1px dashed rgba(108, 117, 125, .5);
+  border-radius: var(--studio-radius, .5rem);
+  color: #6c757d;
+  font-size: .9rem;
+  background: rgba(248, 249, 250, .8);
+}
+
+.output-box {
+  max-height: 40vh;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: .75rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.studio-toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+}
+
+.btn-lg.btn-lg {
+  min-height: 52px;
+}
+
+@media (max-width: 1400px) {
+  .studio-grid {
+    grid-template-columns: 280px minmax(0, 1fr) 320px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .studio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-panel {
+    max-height: none;
+  }
+}

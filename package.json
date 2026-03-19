@@ -1,30 +1,32 @@
 {
-    "name":  "lowcode-platform",
-    "private":  true,
-    "version":  "1.0.0",
-    "workspaces":  [
-                       "apps/*",
-                       "packages/*"
-                   ],
-    "scripts":  {
-                    "typecheck":  "npm run typecheck -ws",
-                    "clean":  "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\"",
-                    "build":  "npm run build -ws",
-                    "test":  "npm run build -ws \u0026\u0026 npm run test -w @lowcode/validator \u0026\u0026 npm run test -w @lowcode/compiler \u0026\u0026 npm run test -w web-preview \u0026\u0026 npm run test -w authoring-studio",
-                    "sync:preview-apps":  "node ./scripts/sync-preview-apps.mjs",
-                    "dev:preview":  "node ./scripts/dev-preview.mjs",
-                    "dev:preview:watch":  "node ./scripts/watch-preview.mjs",
-                    "compile:example":  "node ./scripts/compile-example.mjs",
-                    "use:example":  "node ./scripts/use-example.mjs",
-                    "use:example:navigation":  "node ./scripts/use-example.mjs basic-navigation",
-                    "use:example:state":  "node ./scripts/use-example.mjs state-binding-demo",
-                    "use:example:basket":  "node ./scripts/use-example.mjs basket-summary",
-                    "use:example:service":  "node ./scripts/use-example.mjs service-preview-demo",
-                    "dev:studio":  "node ./scripts/dev-studio.mjs"
-                },
-    "devDependencies":  {
-                            "@types/node":  "^25.5.0",
-                            "typescript":  "^5.9.3",
-                            "vitest":  "^4.1.0"
-                        }
+    "name": "lowcode-platform",
+    "private": true,
+    "version": "1.0.0",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "typecheck": "npm run typecheck -ws",
+        "clean": "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\"",
+        "build": "npm run build -ws",
+        "test": "npm run build -ws && npm run test -w @lowcode/validator && npm run test -w @lowcode/compiler && npm run test -w web-preview && npm run test -w authoring-studio",
+        "sync:preview-apps": "node ./scripts/sync-preview-apps.mjs",
+        "dev:preview": "node ./scripts/dev-preview.mjs",
+        "dev:preview:watch": "node ./scripts/watch-preview.mjs",
+        "compile:example": "node ./scripts/compile-example.mjs",
+        "use:example": "node ./scripts/use-example.mjs",
+        "use:example:navigation": "node ./scripts/use-example.mjs basic-navigation",
+        "use:example:state": "node ./scripts/use-example.mjs state-binding-demo",
+        "use:example:basket": "node ./scripts/use-example.mjs basket-summary",
+        "use:example:service": "node ./scripts/use-example.mjs service-preview-demo",
+        "dev:studio": "npm run dev -w @lowcode/studio",
+        "build:studio": "npm run build -w @lowcode/studio",
+        "typecheck:studio": "npm run typecheck -w @lowcode/studio"
+    },
+    "devDependencies": {
+        "@types/node": "^25.5.0",
+        "typescript": "^5.9.3",
+        "vitest": "^4.1.0"
+    }
 }
