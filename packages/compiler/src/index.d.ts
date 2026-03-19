@@ -1,5 +1,6 @@
 import { LowCodeDsl } from "@lowcode/dsl-schema";
 import { BuildOutput } from "./package";
+export { stableStringify } from "./stableJson";
 export interface CompileResult {
     ok: boolean;
     output?: BuildOutput;

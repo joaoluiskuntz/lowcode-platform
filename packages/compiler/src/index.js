@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.stableStringify = void 0;
 exports.compileDsl = compileDsl;
 const validator_1 = require("@lowcode/validator");
 const transform_1 = require("./transform");
 const package_1 = require("./package");
+var stableJson_1 = require("./stableJson");
+Object.defineProperty(exports, "stableStringify", { enumerable: true, get: function () { return stableJson_1.stableStringify; } });
 function compileDsl(dsl) {
     const validation = (0, validator_1.validateDsl)(dsl);
     if (!validation.valid) {

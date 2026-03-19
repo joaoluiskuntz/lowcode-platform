@@ -12,7 +12,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": "../../",
+    "paths": {
+      "@lowcode/ir": ["packages/ir/src"],
+      "@lowcode/component-metadata": ["packages/component-metadata/src"]
+    }
   },
   "include": ["src", "test", "../web-preview/src/**/*"]
 }
