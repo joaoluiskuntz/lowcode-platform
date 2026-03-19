@@ -1,4 +1,4 @@
-﻿# Current Status
+# Current Status
 
 ## Working now
 - monorepo structure
@@ -9,6 +9,7 @@
 - IR transformation
 - deterministic compilation
 - compiler CLI
+- BOM-safe JSON parsing in compiler CLI
 - generated manifest.json
 - generated main.web.json
 - generated main.android.json
@@ -20,6 +21,7 @@
 
 ## Verified behaviors
 - compile example DSL successfully
+- compiler CLI compiles JSON files with or without UTF-8 BOM
 - load compiled main.web.json in web-preview
 - render first screen
 - navigate between Home and Basket

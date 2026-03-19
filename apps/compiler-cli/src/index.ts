@@ -1,19 +1,24 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
+
 import fs from "node:fs";
 import path from "node:path";
 import { compileDsl, stableStringify } from "@lowcode/compiler";
+
+function stripUtf8Bom(text: string): string {
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
 
 function main(): void {
   const inputPath = process.argv[2];
   const outputDir = process.argv[3] ?? "./build";
 
   if (!inputPath) {
-    console.error("Usage: compiler-cli <input.json> [output-dir]");
+    console.error("Usage: compiler-cli <input-json> [output-dir]");
     process.exit(1);
   }
 
   const raw = fs.readFileSync(inputPath, "utf-8");
-  const dsl = JSON.parse(raw);
+  const dsl = JSON.parse(stripUtf8Bom(raw));
 
   const result = compileDsl(dsl);
 

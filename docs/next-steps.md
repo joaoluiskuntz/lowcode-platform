@@ -1,4 +1,4 @@
-﻿# Recommended Next Steps
+# Recommended Next Steps
 
 ## Short-term
 1. add renderer tests
