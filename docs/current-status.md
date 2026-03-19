@@ -19,7 +19,9 @@
 - navigation between screens
 - one-command preview workflow via `npm run dev:preview`
 - automated contract tests for validator and compiler
-- state-driven bindings in the web preview renderer
+- safe state binding resolution in the web preview runtime
+- declarative preview actions for navigate, setState, showMessage, noop, and unsupported-action logging
+- multiple example DSL apps for navigation, state binding, and basket summary flows
 
 ## Verified behaviors
 - compile example DSL successfully
@@ -32,8 +34,11 @@
 - render first screen
 - navigate between Home and Basket
 - input updates runtime state
-- text and card content can resolve from state bindings
-- state survives screen navigation in the preview runtime
+- text and card content can resolve from safe `state.*` bindings
+- top-level and nested state bindings fall back safely when a path is missing
+- setState actions can update preview state before navigation
+- unsupported actions do not break preview execution
+- multiple example apps can be compiled and loaded into the preview artifact
 
 ## Not implemented yet
 - authoring studio
@@ -49,4 +54,4 @@
 - improve asset handling
 - improve package build ergonomics
 - add watch mode for compiler + preview sync
-- expand binding coverage beyond the first safe state-based model
+- expand binding coverage carefully beyond the initial safe state-based contract

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "state-binding-demo",
+    "name": "State Binding Demo"
+  },
+  "theme": {
+    "bootstrapTheme": "default",
+    "primaryColor": "#198754",
+    "borderRadius": "md"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "title": "Home",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 7
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "intro-card",
+                "props": {
+                  "title": "State and bindings",
+                  "body": "Type your name to update runtime state. The text below resolves from a safe state.* binding."
+                }
+              },
+              {
+                "type": "input",
+                "id": "customer-name-input",
+                "props": {
+                  "label": "Customer name",
+                  "placeholder": "Type your name",
+                  "stateKey": "customerName"
+                }
+              },
+              {
+                "type": "text",
+                "id": "customer-name-preview",
+                "props": {
+                  "text": "Waiting for input"
+                },
+                "bindings": {
+                  "text": "state.customerName"
+                }
+              },
+              {
+                "type": "button",
+                "id": "preset-name",
+                "props": {
+                  "label": "Use preset name",
+                  "variant": "primary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "setState",
+                      "stateKey": "customerName",
+                      "value": "Taylor"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 5
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "mirror-card",
+                "props": {
+                  "title": "Live preview",
+                  "body": "No value yet"
+                },
+                "bindings": {
+                  "body": "state.customerName"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

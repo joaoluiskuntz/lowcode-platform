@@ -4,10 +4,8 @@
 Provide a low-code platform for building self-checkout applications that compile to web and Android runtimes.
 
 ## Core layers
-
 ### 1. DSL
-Human-authored application definition.
-Canonical format: JSON.
+Human-authored application definition. Canonical format: JSON.
 
 ### 2. Validator
 Ensures structural and semantic correctness.
@@ -34,9 +32,9 @@ Consumes IR and executes the application on target platforms.
 - separation between authoring and runtime
 - low-code friendliness
 - extensibility for components and actions
+- no eval or arbitrary code execution in bindings
 
 ## Current package responsibilities
-
 ### packages/dsl-schema
 - schema definition
 - DSL types
@@ -62,13 +60,24 @@ Consumes IR and executes the application on target platforms.
 - React runtime for compiled IR
 - Bootstrap-based layout rendering
 - preview/dev visualization
+- safe binding resolution for `state.*` dot-path expressions
+- declarative action execution for navigation and preview-state updates
 
 ## Current end-to-end flow
-Author edits DSL
-→ compiler validates and transforms
-→ main.web.json generated
-→ web-preview loads main.web.json
-→ React renderer displays UI
+Author edits DSL → compiler validates and transforms → main.web.json generated → web-preview loads main.web.json → React renderer displays UI
+
+## Binding model
+The preview runtime supports a minimal deterministic binding model:
+- `state.customerName`
+- `state.total`
+- `state.itemCount`
+- nested dot-path access such as `state.basket.total`
+
+Binding rules:
+- only `state.` expressions are supported
+- path segments must be simple identifiers
+- missing paths fall back safely
+- no JavaScript evaluation is allowed
 
 ## Future major capabilities
 - low-code visual authoring studio

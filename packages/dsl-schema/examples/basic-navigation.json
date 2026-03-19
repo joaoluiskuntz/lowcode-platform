@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "basic-navigation-demo",
+    "name": "Basic Navigation Demo"
+  },
+  "theme": {
+    "bootstrapTheme": "default",
+    "primaryColor": "#0d6efd",
+    "borderRadius": "md"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "title": "Home",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 8
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "home-card",
+                "props": {
+                  "title": "Navigation demo",
+                  "body": "This example focuses on screen-to-screen navigation using compiled actions."
+                }
+              },
+              {
+                "type": "button",
+                "id": "go-details",
+                "props": {
+                  "label": "Go to Details",
+                  "variant": "primary",
+                  "size": "lg"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "details"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "details",
+      "title": "Details",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12
+            },
+            "children": [
+              {
+                "type": "text",
+                "id": "details-text",
+                "props": {
+                  "text": "You reached the details screen."
+                }
+              },
+              {
+                "type": "button",
+                "id": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "home"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

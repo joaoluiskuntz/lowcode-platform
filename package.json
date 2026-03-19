@@ -11,7 +11,12 @@
                     "test":  "npm run build -ws \u0026\u0026 npm run test -w @lowcode/validator \u0026\u0026 npm run test -w @lowcode/compiler",
                     "typecheck":  "npm run typecheck -ws",
                     "clean":  "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\"",
-                    "dev:preview":  "node ./scripts/dev-preview.mjs"
+                    "dev:preview":  "node ./scripts/dev-preview.mjs",
+                    "compile:example":  "node ./scripts/compile-example.mjs",
+                    "use:example":  "node ./scripts/use-example.mjs",
+                    "use:example:navigation":  "node ./scripts/use-example.mjs basic-navigation",
+                    "use:example:state":  "node ./scripts/use-example.mjs state-binding-demo",
+                    "use:example:basket":  "node ./scripts/use-example.mjs basket-summary"
                 },
     "devDependencies":  {
                             "@types/node":  "^25.5.0",

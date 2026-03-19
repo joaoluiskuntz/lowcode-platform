@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "basket-summary-demo",
+    "name": "Basket Summary Demo"
+  },
+  "theme": {
+    "bootstrapTheme": "default",
+    "primaryColor": "#fd7e14",
+    "borderRadius": "md"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "title": "Home",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 8
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "basket-seed-card",
+                "props": {
+                  "title": "Basket summary flow",
+                  "body": "This button seeds preview state and then navigates to the basket screen."
+                }
+              },
+              {
+                "type": "button",
+                "id": "load-basket",
+                "props": {
+                  "label": "Load Sample Basket",
+                  "variant": "primary",
+                  "size": "lg"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "setState",
+                      "stateKey": "customerName",
+                      "value": "Jordan"
+                    },
+                    {
+                      "type": "setState",
+                      "stateKey": "itemCount",
+                      "value": 3
+                    },
+                    {
+                      "type": "setState",
+                      "stateKey": "total",
+                      "value": 24.5
+                    },
+                    {
+                      "type": "navigate",
+                      "target": "basket"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "basket",
+      "title": "Basket",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 8
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "basket-header",
+                "props": {
+                  "title": "Basket Summary",
+                  "body": "Compiled UI reading runtime state through safe bindings."
+                }
+              },
+              {
+                "type": "text",
+                "id": "customer-name-text",
+                "props": {
+                  "text": "Unknown customer"
+                },
+                "bindings": {
+                  "text": "state.customerName"
+                }
+              },
+              {
+                "type": "text",
+                "id": "item-count-text",
+                "props": {
+                  "text": "0"
+                },
+                "bindings": {
+                  "text": "state.itemCount"
+                }
+              },
+              {
+                "type": "text",
+                "id": "total-text",
+                "props": {
+                  "text": "0"
+                },
+                "bindings": {
+                  "text": "state.total"
+                }
+              },
+              {
+                "type": "button",
+                "id": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "home"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
