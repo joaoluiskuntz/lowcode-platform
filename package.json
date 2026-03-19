@@ -7,17 +7,19 @@
                        "packages/*"
                    ],
     "scripts":  {
-                    "build":  "npm run build -ws",
-                    "test":  "npm run build -ws \u0026\u0026 npm run test -w @lowcode/validator \u0026\u0026 npm run test -w @lowcode/compiler",
                     "typecheck":  "npm run typecheck -ws",
                     "clean":  "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\"",
+                    "build":  "npm run build -ws",
+                    "test":  "npm run build -ws \u0026\u0026 npm run test -w @lowcode/validator \u0026\u0026 npm run test -w @lowcode/compiler \u0026\u0026 npm run test -w web-preview \u0026\u0026 npm run test -w authoring-studio",
+                    "sync:preview-apps":  "node ./scripts/sync-preview-apps.mjs",
+                    "dev:preview":  "node ./scripts/dev-preview.mjs",
+                    "dev:preview:watch":  "node ./scripts/watch-preview.mjs",
                     "compile:example":  "node ./scripts/compile-example.mjs",
                     "use:example":  "node ./scripts/use-example.mjs",
                     "use:example:navigation":  "node ./scripts/use-example.mjs basic-navigation",
                     "use:example:state":  "node ./scripts/use-example.mjs state-binding-demo",
                     "use:example:basket":  "node ./scripts/use-example.mjs basket-summary",
-                    "sync:preview-apps":  "node ./scripts/sync-preview-apps.mjs",
-                    "dev:preview":  "node ./scripts/dev-preview.mjs",
+                    "use:example:service":  "node ./scripts/use-example.mjs service-preview-demo",
                     "dev:studio":  "node ./scripts/dev-studio.mjs"
                 },
     "devDependencies":  {

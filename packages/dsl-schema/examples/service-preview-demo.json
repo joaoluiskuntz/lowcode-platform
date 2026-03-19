@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "service-preview-demo",
+    "name": "Service Preview Demo"
+  },
+  "theme": {
+    "bootstrapTheme": "default",
+    "primaryColor": "#6610f2",
+    "borderRadius": "md"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "title": "Home",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 8
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "service-card",
+                "props": {
+                  "title": "Preview-safe service action",
+                  "body": "This example uses callService in preview mode with a deterministic mock result."
+                }
+              },
+              {
+                "type": "button",
+                "id": "load-service-summary",
+                "props": {
+                  "label": "Load Basket Summary",
+                  "variant": "primary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "callService",
+                      "service": "basketSummary",
+                      "resultStateKey": "basket",
+                      "mockResult": {
+                        "summary": "Preview stub returned a summary"
+                      },
+                      "onSuccess": [
+                        {
+                          "type": "navigate",
+                          "target": "basket"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "basket",
+      "title": "Basket",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12
+            },
+            "children": [
+              {
+                "type": "text",
+                "id": "service-preview-text",
+                "props": {
+                  "text": "No service result"
+                },
+                "bindings": {
+                  "text": "state.basket.summary"
+                }
+              },
+              {
+                "type": "button",
+                "id": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "home"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

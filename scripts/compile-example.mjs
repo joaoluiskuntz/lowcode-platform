@@ -9,21 +9,14 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 const exampleName = process.argv[2];
-const outputDir =
-  process.argv[3] ?? path.join(repoRoot, "build", "examples", exampleName ?? "");
+const outputDir = process.argv[3] ?? path.join(repoRoot, "build", "examples", exampleName ?? "");
 
 if (!exampleName) {
   console.error("Usage: node scripts/compile-example.mjs <example-name> [output-dir]");
   process.exit(1);
 }
 
-const inputPath = path.join(
-  repoRoot,
-  "packages",
-  "dsl-schema",
-  "examples",
-  `${exampleName}.json`
-);
+const inputPath = path.join(repoRoot, "packages", "dsl-schema", "examples", `${exampleName}.json`);
 
 if (!fs.existsSync(inputPath)) {
   console.error(`Example not found: ${inputPath}`);

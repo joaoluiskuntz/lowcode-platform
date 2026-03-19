@@ -24,76 +24,48 @@ function run(command, args) {
   }
 }
 
-function compileExample(exampleName, inputPath) {
-  const outputDir = path.join(buildRoot, exampleName);
-
-  run("node", [
-    path.join("apps", "compiler-cli", "dist", "index.js"),
-    inputPath,
-    outputDir
-  ]);
-
-  return {
-    outputDir,
-    webIrPath: path.join(outputDir, "main.web.json")
-  };
-}
-
-function readExampleTitle(inputPath, exampleName) {
+function readTitle(inputPath, fallback) {
   try {
     const parsed = JSON.parse(fs.readFileSync(inputPath, "utf8").replace(/^\uFEFF/, ""));
-    return typeof parsed?.app?.name === "string" ? parsed.app.name : exampleName;
+    return typeof parsed?.app?.name === "string" ? parsed.app.name : fallback;
   } catch {
-    return exampleName;
+    return fallback;
   }
 }
 
-function main() {
-  fs.mkdirSync(buildRoot, { recursive: true });
-  fs.mkdirSync(publicAppsDir, { recursive: true });
+fs.mkdirSync(buildRoot, { recursive: true });
+fs.mkdirSync(publicAppsDir, { recursive: true });
 
-  run("npm", ["run", "build", "-w", "@lowcode/dsl-schema"]);
-  run("npm", ["run", "build", "-w", "@lowcode/validator"]);
-  run("npm", ["run", "build", "-w", "@lowcode/ir"]);
-  run("npm", ["run", "build", "-w", "@lowcode/compiler"]);
-  run("npm", ["run", "build", "-w", "@lowcode/compiler-cli"]);
+run("npm", ["run", "build", "-w", "@lowcode/dsl-schema"]);
+run("npm", ["run", "build", "-w", "@lowcode/validator"]);
+run("npm", ["run", "build", "-w", "@lowcode/ir"]);
+run("npm", ["run", "build", "-w", "@lowcode/compiler"]);
+run("npm", ["run", "build", "-w", "@lowcode/compiler-cli"]);
 
-  const exampleFiles = fs
-    .readdirSync(examplesDir)
-    .filter((file) => file.endsWith(".json"))
-    .sort();
+const exampleFiles = fs.readdirSync(examplesDir).filter((file) => file.endsWith(".json")).sort();
+const indexEntries = [];
 
-  const indexEntries = [];
+for (const fileName of exampleFiles) {
+  const exampleName = fileName.replace(/\.json$/, "");
+  const inputPath = path.join(examplesDir, fileName);
+  const outputDir = path.join(buildRoot, exampleName);
 
-  for (const fileName of exampleFiles) {
-    const exampleName = fileName.replace(/\.json$/, "");
-    const inputPath = path.join(examplesDir, fileName);
-    const { webIrPath } = compileExample(exampleName, inputPath);
-    const targetFileName = `${exampleName}.web.json`;
-    const publicPath = path.join(publicAppsDir, targetFileName);
+  run("node", [path.join("apps", "compiler-cli", "dist", "index.js"), inputPath, outputDir]);
 
-    fs.copyFileSync(webIrPath, publicPath);
+  const artifactFileName = `${exampleName}.web.json`;
+  fs.copyFileSync(path.join(outputDir, "main.web.json"), path.join(publicAppsDir, artifactFileName));
 
-    indexEntries.push({
-      id: exampleName,
-      title: readExampleTitle(inputPath, exampleName),
-      path: `/apps/${targetFileName}`
-    });
-  }
-
-  if (indexEntries.length > 0) {
-    const defaultEntry =
-      indexEntries.find((entry) => entry.id === "basic-checkout") ?? indexEntries[0];
-
-    fs.copyFileSync(path.join(repoRoot, "apps", "web-preview", "public", defaultEntry.path.replace(/^\//, "")), defaultTarget);
-  }
-
-  fs.writeFileSync(
-    path.join(publicAppsDir, "index.json"),
-    JSON.stringify(indexEntries, null, 2)
-  );
-
-  console.log(`Prepared ${indexEntries.length} preview artifacts.`);
+  indexEntries.push({
+    id: exampleName,
+    title: readTitle(inputPath, exampleName),
+    path: `/apps/${artifactFileName}`
+  });
 }
 
-main();
+if (indexEntries.length > 0) {
+  const defaultEntry = indexEntries.find((entry) => entry.id === "basic-checkout") ?? indexEntries[0];
+  fs.copyFileSync(path.join(repoRoot, "apps", "web-preview", "public", defaultEntry.path.replace(/^\//, "")), defaultTarget);
+}
+
+fs.writeFileSync(path.join(publicAppsDir, "index.json"), JSON.stringify(indexEntries, null, 2));
+console.log(`Prepared ${indexEntries.length} preview artifacts.`);

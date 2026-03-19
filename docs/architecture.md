@@ -57,6 +57,7 @@ Consumes IR and executes the application on target platforms.
 ### packages/component-metadata
 - machine-readable component catalog
 - properties and defaults
+- authoring-facing bindable property metadata
 - event support
 - accessibility requirements
 - platform support metadata
@@ -68,15 +69,17 @@ Consumes IR and executes the application on target platforms.
 - React runtime for compiled IR
 - Bootstrap-based layout rendering
 - preview/dev visualization
-- selection of compiled artifacts through an index and query parameter
+- compiled artifact selection through an index and query parameter
+- deterministic preview handling for `callService`
 
 ### apps/authoring-studio
 - minimal editor foundation for DSL JSON
+- metadata-guided authoring hints
 - local compiler-backed preview workflow
 - renders only compiled IR in the preview panel
 
 ## Current end-to-end flow
-Author edits DSL → compiler validates and transforms → main.web.json generated → web-preview loads compiled artifact → React renderer displays UI
+Author edits DSL → compiler validates and transforms → package artifacts generated → web-preview and authoring-studio load compiled IR → React renderer displays UI
 
 ## Binding model
 The preview runtime supports a minimal deterministic binding model:
@@ -91,8 +94,14 @@ Binding rules:
 - missing paths fall back safely
 - no JavaScript evaluation is allowed
 
-## Component metadata model
-A formal component metadata catalog defines:
+## Preview-safe service behavior
+`callService` remains declarative in IR. Preview environments handle it deterministically by:
+- logging that a preview stub ran
+- optionally storing a mocked result in runtime state
+- optionally chaining follow-up actions from payload-defined success actions
+
+## Authoring metadata model
+The component metadata catalog formally describes:
 - properties
 - defaults
 - bindability
@@ -100,10 +109,10 @@ A formal component metadata catalog defines:
 - accessibility requirements
 - platform support
 
-The catalog is independent from runtime rendering code so it can be consumed later by an editor or design-time tooling.
+Authoring-facing bindable property metadata documents which props can resolve from safe bindings and how fallback behavior works.
 
 ## Future major capabilities
-- richer visual authoring
+- deeper structured authoring
 - Android renderer
 - hardware abstraction layer
 - checkout domain model

@@ -59,11 +59,13 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const rawValue = runtime.stateStore[stateKey];
       const baseValue = typeof rawValue === "string" ? rawValue : rawValue == null ? "" : String(rawValue);
       const currentValue = resolveBoundString(node, "value", runtime.stateStore, baseValue);
+      const inputId = `${node.nodeId}-input`;
 
       return (
         <div className={["lc-input-group", classes].filter(Boolean).join(" ")}>
-          {label ? <label className="form-label fw-semibold">{label}</label> : null}
+          {label ? <label htmlFor={inputId} className="form-label fw-semibold">{label}</label> : null}
           <input
+            id={inputId}
             className="form-control form-control-lg shadow-sm"
             value={currentValue}
             placeholder={placeholder}

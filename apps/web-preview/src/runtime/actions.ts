@@ -47,7 +47,7 @@ export function useActionExecutor() {
       }
 
       case "callService": {
-        console.warn("callService not implemented in preview runtime", action.payload);
+        applyCallServicePreview(action.payload ?? {});
         break;
       }
 
@@ -77,6 +77,32 @@ export function useActionExecutor() {
     }
 
     console.warn("Invalid setState payload ignored", payload);
+  }
+
+  function applyCallServicePreview(payload: Record<string, unknown>): void {
+    const serviceName =
+      typeof payload.service === "string"
+        ? payload.service
+        : typeof payload.serviceName === "string"
+          ? payload.serviceName
+          : "unknown-service";
+
+    console.info("callService handled by preview stub", {
+      service: serviceName,
+      mode: "mock"
+    });
+
+    if (typeof payload.resultStateKey === "string") {
+      runtime.setStateValue(payload.resultStateKey, payload.mockResult ?? null);
+    }
+
+    if (typeof payload.message === "string" && payload.message.length > 0) {
+      console.info(payload.message);
+    }
+
+    if (Array.isArray(payload.onSuccess)) {
+      executeActions(payload.onSuccess as IrAction[]);
+    }
   }
 
   function applyStateUpdate(stateKey: string, value: unknown): void {

@@ -14,5 +14,5 @@
     "strict": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "../web-preview/src/**/*"]
+  "include": ["src", "test", "../web-preview/src/**/*"]
 }

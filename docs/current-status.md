@@ -15,43 +15,34 @@
 - generated main.android.json
 - React web preview
 - compiled artifact selection in web preview via query parameter and selector
-- Bootstrap-oriented preview layout and styling improvements
-- basic component rendering
-- navigation between screens
-- one-command preview workflow via `npm run dev:preview`
-- automated contract tests for validator and compiler
-- safe state binding resolution in the web preview runtime
-- declarative preview actions for navigate, setState, showMessage, and unsupported-action logging
-- multiple example DSL apps for navigation, state binding, and basket summary flows
-- formal component metadata catalog
-- authoring studio foundation with DSL loading, editing, compilation, and compiled preview
+- watch mode for compiler + preview artifact sync via `npm run dev:preview:watch`
+- deterministic preview-safe `callService` handling
+- richer sample DSL scenarios for navigation, binding, basket summary, and service preview
+- renderer interaction tests for screen rendering, state updates, navigation, bindings, artifact switching, and service preview behavior
+- authoring studio foundation with compiler-backed preview
+- authoring-facing metadata for bindable component props
 
 ## Verified behaviors
-- compile example DSL successfully
-- compiler CLI compiles JSON files with or without UTF-8 BOM
-- valid DSL compiles successfully
-- invalid navigation target fails validation
-- duplicate component ids fail validation
-- repeated compiles produce the same content hash
 - multiple compiled examples can be selected in the preview app without code edits
-- web preview continues to render compiled IR only
-- screens render with cleaner spacing, card styling, typography, and responsive column behavior
-- component metadata is described in one machine-readable source
-- authoring studio can load a DSL file, show raw JSON, compile it through the local compiler service, and preview the compiled result
+- preview artifacts can be recompiled and resynced automatically while the preview dev server is running
+- `callService` preview behavior logs deterministic stub execution, can seed mock state, and can chain success actions
+- richer example apps compile successfully
+- renderer interaction tests pass for screen rendering, state updates, bindings, navigation, artifact switching, and service preview
+- authoring metadata surfaces bindable properties, examples, and fallback behavior without bypassing the compiler
 
 ## Not implemented yet
-- visual drag-and-drop authoring
-- Android runtime
-- API/service execution
+- checkout domain model
+- adapter abstraction package
+- Android renderer spike
+- deeper structured component editing
+- production backend integration
 - offline strategy
 - governance workflow
 - tenant model
-- checkout-specific business domain runtime
 
 ## Technical debt / cleanup
-- add automated tests for preview renderer and authoring studio
+- add more edge-case tests for invalid bindings and missing artifacts
 - improve asset handling
 - improve package build ergonomics
-- add watch mode for compiler + preview sync
-- expand binding coverage carefully beyond the initial safe state-based contract
-- extract shared renderer pieces into a dedicated package when editor/runtime reuse grows further
+- expand structured authoring beyond app metadata
+- extract shared renderer pieces into a dedicated package when reuse grows further

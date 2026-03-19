@@ -16,6 +16,13 @@ export type MetadataPropertyType =
   | "array"
   | "object";
 
+export interface BindablePropertyMetadata {
+  name: string;
+  bindingTarget: string;
+  expressionExamples: string[];
+  fallbackDescription: string;
+}
+
 export interface ComponentPropertyMetadata {
   name: string;
   type: MetadataPropertyType;
@@ -48,6 +55,7 @@ export interface ComponentMetadata {
   displayName: string;
   description: string;
   properties: ComponentPropertyMetadata[];
+  bindableProps: BindablePropertyMetadata[];
   events: ComponentEventMetadata[];
   accessibility: AccessibilityMetadata;
   platforms: PlatformSupportMetadata;
@@ -67,6 +75,14 @@ export const componentCatalog: ComponentMetadata[] = [
         bindable: true,
         defaultValue: "",
         description: "Visible text content."
+      }
+    ],
+    bindableProps: [
+      {
+        name: "text",
+        bindingTarget: "state",
+        expressionExamples: ["state.customerName", "state.total", "state.itemCount"],
+        fallbackDescription: "Falls back to the static props.text value when the binding is missing or invalid."
       }
     ],
     events: [],
@@ -109,6 +125,14 @@ export const componentCatalog: ComponentMetadata[] = [
         description: "Optional button size."
       }
     ],
+    bindableProps: [
+      {
+        name: "label",
+        bindingTarget: "state",
+        expressionExamples: ["state.customerName", "state.basket.summary"],
+        fallbackDescription: "Falls back to props.label when the binding cannot be resolved."
+      }
+    ],
     events: [
       {
         name: "onClick",
@@ -142,6 +166,20 @@ export const componentCatalog: ComponentMetadata[] = [
         bindable: true,
         defaultValue: "",
         description: "Accessible alternative text."
+      }
+    ],
+    bindableProps: [
+      {
+        name: "src",
+        bindingTarget: "state",
+        expressionExamples: ["state.product.imageUrl"],
+        fallbackDescription: "Falls back to props.src when no value is found."
+      },
+      {
+        name: "alt",
+        bindingTarget: "state",
+        expressionExamples: ["state.product.imageAlt"],
+        fallbackDescription: "Falls back to props.alt when no value is found."
       }
     ],
     events: [],
@@ -189,6 +227,26 @@ export const componentCatalog: ComponentMetadata[] = [
         description: "Optional displayed value binding."
       }
     ],
+    bindableProps: [
+      {
+        name: "label",
+        bindingTarget: "state",
+        expressionExamples: ["state.labels.customerName"],
+        fallbackDescription: "Falls back to props.label when no value is found."
+      },
+      {
+        name: "placeholder",
+        bindingTarget: "state",
+        expressionExamples: ["state.placeholders.customerName"],
+        fallbackDescription: "Falls back to props.placeholder when no value is found."
+      },
+      {
+        name: "value",
+        bindingTarget: "state",
+        expressionExamples: ["state.customerName", "state.basket.notes"],
+        fallbackDescription: "Falls back to the current runtime state value for the input stateKey."
+      }
+    ],
     events: [
       {
         name: "onChange",
@@ -225,6 +283,20 @@ export const componentCatalog: ComponentMetadata[] = [
         description: "Card body text."
       }
     ],
+    bindableProps: [
+      {
+        name: "title",
+        bindingTarget: "state",
+        expressionExamples: ["state.basket.title"],
+        fallbackDescription: "Falls back to props.title when no value is found."
+      },
+      {
+        name: "body",
+        bindingTarget: "state",
+        expressionExamples: ["state.customerName", "state.basket.summary"],
+        fallbackDescription: "Falls back to props.body when no value is found."
+      }
+    ],
     events: [],
     accessibility: {
       required: [],
@@ -247,6 +319,7 @@ export const componentCatalog: ComponentMetadata[] = [
         description: "Ordered values displayed in the list."
       }
     ],
+    bindableProps: [],
     events: [],
     accessibility: {
       required: [],
@@ -260,6 +333,7 @@ export const componentCatalog: ComponentMetadata[] = [
     displayName: "Row",
     description: "Bootstrap-oriented horizontal layout container.",
     properties: [],
+    bindableProps: [],
     events: [],
     accessibility: {
       required: [],
@@ -281,6 +355,7 @@ export const componentCatalog: ComponentMetadata[] = [
         description: "Responsive column span definition across breakpoints."
       }
     ],
+    bindableProps: [],
     events: [],
     accessibility: {
       required: [],

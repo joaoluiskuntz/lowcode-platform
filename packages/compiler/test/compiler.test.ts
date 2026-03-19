@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileDsl, stableStringify } from "../src/index";
+import { compileDsl } from "../src/index";
 import type { LowCodeDsl } from "../../dsl-schema/src/index";
 
 function createValidDsl(): LowCodeDsl {
@@ -123,6 +123,26 @@ function collectComponentNodes(node: any): any[] {
   return (node.children ?? []).flatMap((child: any) => collectComponentNodes(child));
 }
 
+function stableStringifyForTest(value: unknown): string {
+  return JSON.stringify(sortValue(value), null, 2);
+}
+
+function sortValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortValue);
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, val]) => [key, sortValue(val)]);
+
+    return Object.fromEntries(entries);
+  }
+
+  return value;
+}
+
 describe("compileDsl", () => {
   it("compiles a valid DSL successfully", () => {
     const result = compileDsl(createValidDsl());
@@ -169,6 +189,6 @@ describe("compileDsl", () => {
     expect(resultA.ok).toBe(true);
     expect(resultB.ok).toBe(true);
     expect(resultA.output!.manifest.contentHash).toBe(resultB.output!.manifest.contentHash);
-    expect(stableStringify(resultA.output)).toBe(stableStringify(resultB.output));
+    expect(stableStringifyForTest(resultA.output)).toBe(stableStringifyForTest(resultB.output));
   });
 });

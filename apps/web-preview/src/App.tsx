@@ -33,6 +33,7 @@ export default function App() {
 
       try {
         const index = await loadArtifactIndex();
+
         if (cancelled) {
           return;
         }
@@ -54,7 +55,7 @@ export default function App() {
       }
     }
 
-    initialize();
+    void initialize();
 
     return () => {
       cancelled = true;
@@ -87,7 +88,7 @@ export default function App() {
     artifactId: string,
     index: ArtifactIndexEntry[],
     cancelled = false
-  ) {
+  ): Promise<void> {
     const entry = index.find((item) => item.id === artifactId) ?? legacyArtifact;
     const response = await fetch(entry.path);
 
@@ -143,8 +144,11 @@ export default function App() {
                   </div>
                 </div>
                 <div className="artifact-picker">
-                  <label className="form-label small text-uppercase fw-semibold mb-2">Compiled artifact</label>
+                  <label htmlFor="artifact-selector" className="form-label small text-uppercase fw-semibold mb-2">
+                    Compiled artifact
+                  </label>
                   <select
+                    id="artifact-selector"
                     className="form-select form-select-lg"
                     value={selectedArtifactId}
                     onChange={(event) => void handleArtifactChange(event.target.value)}

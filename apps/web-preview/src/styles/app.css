@@ -4,7 +4,6 @@
   --lc-border: rgba(15, 23, 42, 0.08);
   --lc-text: #0f172a;
   --lc-muted: #64748b;
-  --lc-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
 body {
@@ -65,10 +64,6 @@ body {
   border-radius: 1.5rem;
 }
 
-.lc-row {
-  margin-bottom: 0;
-}
-
 .lc-column {
   display: flex;
   flex-direction: column;
@@ -88,11 +83,6 @@ body {
 
 .lc-card .card-title {
   font-weight: 700;
-}
-
-.lc-input-group,
-.lc-image-wrapper {
-  margin-bottom: 0;
 }
 
 .form-control,

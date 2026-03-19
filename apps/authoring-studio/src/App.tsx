@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
 import type { AppIr } from "@lowcode/ir";
+import { componentCatalog, componentCatalogByType, type MetadataNodeType } from "@lowcode/component-metadata";
 import { ScreenRenderer } from "../../web-preview/src/renderer/ScreenRenderer";
 import { RuntimeProvider } from "../../web-preview/src/runtime/RuntimeContext";
 
@@ -33,7 +34,7 @@ const initialDsl = `{
                 "id": "intro-card",
                 "props": {
                   "title": "Authoring Studio",
-                  "body": "Edit this JSON, compile through the real compiler, and preview the compiled IR."
+                  "body": "Edit the DSL, compile it through the local compiler service, and preview compiled IR."
                 }
               },
               {
@@ -53,63 +54,6 @@ const initialDsl = `{
                 },
                 "bindings": {
                   "text": "state.customerName"
-                }
-              },
-              {
-                "type": "button",
-                "id": "go-basket",
-                "props": {
-                  "label": "Go to Basket",
-                  "variant": "primary"
-                },
-                "events": {
-                  "onClick": [
-                    {
-                      "type": "navigate",
-                      "target": "basket"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "basket",
-      "title": "Basket",
-      "layout": {
-        "type": "row",
-        "children": [
-          {
-            "type": "column",
-            "span": {
-              "xs": 12
-            },
-            "children": [
-              {
-                "type": "card",
-                "id": "basket-card",
-                "props": {
-                  "title": "Basket",
-                  "body": "This preview is still rendered from compiled IR only."
-                }
-              },
-              {
-                "type": "button",
-                "id": "back-home",
-                "props": {
-                  "label": "Back to Home",
-                  "variant": "secondary"
-                },
-                "events": {
-                  "onClick": [
-                    {
-                      "type": "navigate",
-                      "target": "home"
-                    }
-                  ]
                 }
               }
             ]
@@ -136,6 +80,40 @@ interface CompileResponse {
   errors?: CompileError[];
 }
 
+interface DraftSummary {
+  appId: string;
+  appName: string;
+  screens: Array<{ id: string; title: string }>;
+}
+
+function summarizeDsl(text: string): DraftSummary | null {
+  try {
+    const parsed = JSON.parse(text) as {
+      app?: { id?: string; name?: string };
+      screens?: Array<{ id?: string; title?: string }>;
+    };
+
+    return {
+      appId: typeof parsed.app?.id === "string" ? parsed.app.id : "",
+      appName: typeof parsed.app?.name === "string" ? parsed.app.name : "",
+      screens: Array.isArray(parsed.screens)
+        ? parsed.screens.map((screen, index) => ({
+            id: typeof screen.id === "string" ? screen.id : `screen-${index}`,
+            title: typeof screen.title === "string" ? screen.title : ""
+          }))
+        : []
+    };
+  } catch {
+    return null;
+  }
+}
+
+function updateDslText(text: string, updater: (draft: any) => void): string {
+  const parsed = JSON.parse(text);
+  updater(parsed);
+  return JSON.stringify(parsed, null, 2);
+}
+
 export default function App() {
   const [dslText, setDslText] = useState<string>(initialDsl);
   const [compiledApp, setCompiledApp] = useState<AppIr | null>(null);
@@ -144,6 +122,10 @@ export default function App() {
   const [status, setStatus] = useState<string>("Ready");
   const [currentScreenId, setCurrentScreenId] = useState<string | null>(null);
   const [stateStore, setStateStore] = useState<Record<string, unknown>>({});
+  const [selectedComponentType, setSelectedComponentType] = useState<MetadataNodeType>("text");
+
+  const draftSummary = useMemo(() => summarizeDsl(dslText), [dslText]);
+  const selectedMetadata = componentCatalogByType[selectedComponentType];
 
   const currentScreen = useMemo(() => {
     if (!compiledApp || !currentScreenId) {
@@ -152,6 +134,15 @@ export default function App() {
 
     return compiledApp.screens.find((screen) => screen.id === currentScreenId) ?? null;
   }, [compiledApp, currentScreenId]);
+
+  function applyStructuredUpdate(updater: (draft: any) => void): void {
+    try {
+      setDslText((current) => updateDslText(current, updater));
+      setStatus("Structured editor updated the DSL");
+    } catch {
+      setStatus("Structured editor is disabled until the JSON is valid");
+    }
+  }
 
   async function compileCurrentDsl() {
     setStatus("Compiling through the local compiler service...");
@@ -203,7 +194,7 @@ export default function App() {
     setStatus("Compiled successfully");
   }
 
-  function handleFileLoad(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileLoad(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -231,7 +222,7 @@ export default function App() {
                 <div className="preview-eyebrow">Authoring Studio Foundation</div>
                 <h1 className="h3 mb-2">Edit DSL and preview compiled IR</h1>
                 <div className="text-muted">
-                  The editor loads DSL JSON, sends it through the local compiler service, and renders only the compiled result.
+                  The editor uses structured metadata hints but the preview still renders only compiled IR.
                 </div>
               </div>
               <div className="studio-actions d-flex flex-wrap gap-2">
@@ -253,8 +244,8 @@ export default function App() {
               </div>
               <div className="col-sm-4">
                 <div className="preview-meta-card">
-                  <div className="preview-meta-label">Compiled screens</div>
-                  <div className="preview-meta-value">{compiledApp?.screens.length ?? 0}</div>
+                  <div className="preview-meta-label">Screens</div>
+                  <div className="preview-meta-value">{draftSummary?.screens.length ?? 0}</div>
                 </div>
               </div>
               <div className="col-sm-4">
@@ -268,7 +259,85 @@ export default function App() {
         </div>
 
         <div className="row g-4">
-          <div className="col-12 col-xl-5">
+          <div className="col-12 col-xl-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body p-4">
+                <h2 className="h5 mb-3">Structured authoring</h2>
+                <div className="mb-3">
+                  <label htmlFor="app-name" className="form-label fw-semibold">Application Name</label>
+                  <input
+                    id="app-name"
+                    className="form-control"
+                    value={draftSummary?.appName ?? ""}
+                    onChange={(event) =>
+                      applyStructuredUpdate((draft) => {
+                        draft.app = draft.app ?? {};
+                        draft.app.name = event.target.value;
+                      })
+                    }
+                    disabled={!draftSummary}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="app-id" className="form-label fw-semibold">Application ID</label>
+                  <input
+                    id="app-id"
+                    className="form-control"
+                    value={draftSummary?.appId ?? ""}
+                    onChange={(event) =>
+                      applyStructuredUpdate((draft) => {
+                        draft.app = draft.app ?? {};
+                        draft.app.id = event.target.value;
+                      })
+                    }
+                    disabled={!draftSummary}
+                  />
+                </div>
+
+                <h3 className="h6 mb-3">Bindability metadata</h3>
+                <div className="mb-3">
+                  <label htmlFor="component-type" className="form-label fw-semibold">Component Type</label>
+                  <select
+                    id="component-type"
+                    className="form-select"
+                    value={selectedComponentType}
+                    onChange={(event) => setSelectedComponentType(event.target.value as MetadataNodeType)}
+                  >
+                    {componentCatalog.map((component) => (
+                      <option key={component.type} value={component.type}>
+                        {component.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="metadata-card rounded-4 border p-3">
+                  <div className="fw-semibold">{selectedMetadata.displayName}</div>
+                  <div className="small text-muted mb-3">{selectedMetadata.description}</div>
+
+                  <div className="small text-uppercase fw-semibold text-muted mb-2">Bindable Props</div>
+                  <ul className="list-group list-group-flush">
+                    {selectedMetadata.bindableProps.length === 0 ? (
+                      <li className="list-group-item px-0">No bindable properties</li>
+                    ) : (
+                      selectedMetadata.bindableProps.map((binding) => (
+                        <li key={binding.name} className="list-group-item px-0">
+                          <div className="fw-semibold">{binding.name}</div>
+                          <div className="small text-muted">Target: {binding.bindingTarget}</div>
+                          <div className="small text-muted">
+                            Examples: {binding.expressionExamples.join(", ")}
+                          </div>
+                          <div className="small text-muted">{binding.fallbackDescription}</div>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-xl-4">
             <div className="card border-0 shadow-sm h-100">
               <div className="card-body p-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
@@ -288,6 +357,7 @@ export default function App() {
                   </button>
                 </div>
                 <textarea
+                  aria-label="DSL JSON"
                   className="form-control studio-editor"
                   value={dslText}
                   onChange={(event) => setDslText(event.target.value)}
@@ -296,28 +366,13 @@ export default function App() {
             </div>
           </div>
 
-          <div className="col-12 col-xl-7">
+          <div className="col-12 col-xl-4">
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-body p-4">
-                <div className="d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center mb-3">
-                  <h2 className="h5 mb-0">Compiled Preview</h2>
-                  {compiledApp ? (
-                    <select
-                      className="form-select w-auto"
-                      value={currentScreenId ?? ""}
-                      onChange={(event) => setCurrentScreenId(event.target.value)}
-                    >
-                      {compiledApp.screens.map((screen) => (
-                        <option key={screen.id} value={screen.id}>
-                          {screen.title}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
-                </div>
+                <h2 className="h5 mb-3">Compiled Preview</h2>
 
                 {errors.length > 0 ? (
-                  <div className="alert alert-danger mb-0">
+                  <div className="alert alert-danger mb-3">
                     <div className="fw-semibold mb-2">Compilation failed</div>
                     <ul className="mb-0">
                       {errors.map((error, index) => (
