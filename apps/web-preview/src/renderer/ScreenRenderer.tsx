@@ -7,8 +7,8 @@ interface ScreenRendererProps {
 
 export function ScreenRenderer({ screen }: ScreenRendererProps) {
   return (
-    <div data-screen-id={screen.id}>
+    <section className="container-fluid px-0">
       <NodeRenderer node={screen.root} />
-    </div>
+    </section>
   );
 }

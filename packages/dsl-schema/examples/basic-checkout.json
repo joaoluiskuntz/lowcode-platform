@@ -28,14 +28,26 @@
                 "id": "welcome-card",
                 "props": {
                   "title": "Welcome",
-                  "body": "Scan your items to begin"
+                  "body": "Type your name below. The value is stored in runtime state and rendered from compiled bindings."
+                }
+              },
+              {
+                "type": "input",
+                "id": "customer-name-input",
+                "props": {
+                  "label": "Customer name",
+                  "placeholder": "Type your name",
+                  "stateKey": "customerName"
                 }
               },
               {
                 "type": "text",
-                "id": "instructions",
+                "id": "customer-name-preview",
                 "props": {
-                  "text": "This screen is rendered from your compiled low-code artifact."
+                  "text": ""
+                },
+                "bindings": {
+                  "text": "state.customerName"
                 }
               },
               {
@@ -68,8 +80,11 @@
                 "type": "card",
                 "id": "side-card",
                 "props": {
-                  "title": "Status",
-                  "body": "Renderer connected successfully."
+                  "title": "Live state",
+                  "body": ""
+                },
+                "bindings": {
+                  "body": "state.customerName"
                 }
               },
               {
@@ -80,7 +95,7 @@
                     "Schema validation",
                     "IR compilation",
                     "React renderer",
-                    "Screen navigation"
+                    "Runtime state bindings"
                   ]
                 }
               }
@@ -109,11 +124,21 @@
                 }
               },
               {
+                "type": "text",
+                "id": "basket-customer-name",
+                "props": {
+                  "text": ""
+                },
+                "bindings": {
+                  "text": "state.customerName"
+                }
+              },
+              {
                 "type": "card",
                 "id": "basket-card",
                 "props": {
                   "title": "Basket screen reached",
-                  "body": "Navigation is working."
+                  "body": "Navigation is working and state is preserved across screens."
                 }
               },
               {

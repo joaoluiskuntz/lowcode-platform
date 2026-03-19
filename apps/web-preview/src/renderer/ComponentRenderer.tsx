@@ -1,5 +1,6 @@
-import type { IrComponentNode, IrAction } from "@lowcode/ir";
+import type { IrAction, IrComponentNode } from "@lowcode/ir";
 import { useActionExecutor } from "../runtime/actions";
+import { resolveBoundString } from "../runtime/bindings";
 import { useRuntime } from "../runtime/RuntimeContext";
 
 interface ComponentRendererProps {
@@ -9,21 +10,19 @@ interface ComponentRendererProps {
 export function ComponentRenderer({ node }: ComponentRendererProps) {
   const { executeActions } = useActionExecutor();
   const runtime = useRuntime();
-
   const classes = node.classList.join(" ");
   const onClick = getActions(node.events.onClick);
   const onChange = getActions(node.events.onChange);
 
   switch (node.componentType) {
-    case "text":
-      return (
-        <div className={classes} data-node-id={node.nodeId}>
-          {asString(node.props.text)}
-        </div>
-      );
+    case "text": {
+      const text = resolveBoundString(node, "text", runtime.stateStore, asString(node.props.text));
+
+      return <p className={classes}>{text}</p>;
+    }
 
     case "button": {
-      const label = asString(node.props.label, "Button");
+      const label = resolveBoundString(node, "label", runtime.stateStore, asString(node.props.label, "Button"));
       const variant = asString(node.props.variant, "primary");
       const size = asString(node.props.size, "");
       const buttonClass = ["btn", `btn-${variant}`, size ? `btn-${size}` : "", classes]
@@ -31,44 +30,39 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
         .join(" ");
 
       return (
-        <button
-          type="button"
-          className={buttonClass}
-          data-node-id={node.nodeId}
-          onClick={() => executeActions(onClick)}
-        >
+        <button type="button" className={buttonClass} onClick={() => executeActions(onClick)}>
           {label}
         </button>
       );
     }
 
     case "image": {
-      const src = asString(node.props.src);
-      const alt = asString(node.props.alt, "");
-      return (
-        <img
-          src={src}
-          alt={alt}
-          className={["img-fluid", classes].filter(Boolean).join(" ")}
-          data-node-id={node.nodeId}
-        />
-      );
+      const src = resolveBoundString(node, "src", runtime.stateStore, asString(node.props.src));
+      const alt = resolveBoundString(node, "alt", runtime.stateStore, asString(node.props.alt, ""));
+
+      return <img className={classes} src={src} alt={alt} />;
     }
 
     case "input": {
-      const label = asString(node.props.label, "");
-      const placeholder = asString(node.props.placeholder, "");
+      const label = resolveBoundString(node, "label", runtime.stateStore, asString(node.props.label, ""));
+      const placeholder = resolveBoundString(
+        node,
+        "placeholder",
+        runtime.stateStore,
+        asString(node.props.placeholder, "")
+      );
       const stateKey = asString(node.props.stateKey, node.nodeId);
-      const value = runtime.stateStore[stateKey];
-      const currentValue = typeof value === "string" ? value : "";
+      const rawValue = runtime.stateStore[stateKey];
+      const baseValue = typeof rawValue === "string" ? rawValue : rawValue == null ? "" : String(rawValue);
+      const currentValue = resolveBoundString(node, "value", runtime.stateStore, baseValue);
 
       return (
-        <div className={classes} data-node-id={node.nodeId}>
+        <div className={classes}>
           {label ? <label className="form-label">{label}</label> : null}
           <input
             className="form-control"
-            placeholder={placeholder}
             value={currentValue}
+            placeholder={placeholder}
             onChange={(event) => {
               runtime.setStateValue(stateKey, event.target.value);
               executeActions(onChange);
@@ -79,10 +73,11 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
     }
 
     case "card": {
-      const title = asString(node.props.title, "");
-      const body = asString(node.props.body, "");
+      const title = resolveBoundString(node, "title", runtime.stateStore, asString(node.props.title, ""));
+      const body = resolveBoundString(node, "body", runtime.stateStore, asString(node.props.body, ""));
+
       return (
-        <div className={["card", classes].filter(Boolean).join(" ")} data-node-id={node.nodeId}>
+        <div className={["card", classes].filter(Boolean).join(" ")}>
           <div className="card-body">
             {title ? <h5 className="card-title">{title}</h5> : null}
             {body ? <p className="card-text mb-0">{body}</p> : null}
@@ -93,19 +88,19 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
 
     case "list": {
       const items = Array.isArray(node.props.items) ? node.props.items : [];
+
       return (
-        <ul className={["list-group", classes].filter(Boolean).join(" ")} data-node-id={node.nodeId}>
+        <ul className={classes}>
           {items.map((item, index) => (
-            <li key={`${node.nodeId}-${index}`} className="list-group-item">
-              {String(item)}
-            </li>
+            <li key={`${node.nodeId}-${index}`}>{String(item)}</li>
           ))}
         </ul>
       );
     }
 
-    default:
-      return <div className="alert alert-warning">Unsupported component type: {node.componentType}</div>;
+    default: {
+      return <div className={classes}>Unsupported component type: {node.componentType}</div>;
+    }
   }
 }
 

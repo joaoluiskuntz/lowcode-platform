@@ -8,7 +8,7 @@
                    ],
     "scripts":  {
                     "build":  "npm run build -ws",
-                    "test":  "npm run test -ws",
+                    "test":  "npm run build -ws \u0026\u0026 npm run test -w @lowcode/validator \u0026\u0026 npm run test -w @lowcode/compiler",
                     "typecheck":  "npm run typecheck -ws",
                     "clean":  "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\"",
                     "dev:preview":  "node ./scripts/dev-preview.mjs"

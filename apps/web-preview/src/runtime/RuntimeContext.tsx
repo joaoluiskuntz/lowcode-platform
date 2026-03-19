@@ -15,8 +15,10 @@ export const RuntimeProvider = RuntimeContext.Provider;
 
 export function useRuntime(): RuntimeContextValue {
   const context = useContext(RuntimeContext);
+
   if (!context) {
     throw new Error("useRuntime must be used inside RuntimeProvider");
   }
+
   return context;
 }

@@ -20,19 +20,34 @@
                 "kind": "component",
                 "nodeId": "welcome-card",
                 "props": {
-                  "body": "Scan your items to begin",
+                  "body": "Type your name below. The value is stored in runtime state and rendered from compiled bindings.",
                   "title": "Welcome"
                 }
               },
               {
                 "bindings": {},
                 "classList": [],
+                "componentType": "input",
+                "events": {},
+                "kind": "component",
+                "nodeId": "customer-name-input",
+                "props": {
+                  "label": "Customer name",
+                  "placeholder": "Type your name",
+                  "stateKey": "customerName"
+                }
+              },
+              {
+                "bindings": {
+                  "text": "state.customerName"
+                },
+                "classList": [],
                 "componentType": "text",
                 "events": {},
                 "kind": "component",
-                "nodeId": "instructions",
+                "nodeId": "customer-name-preview",
                 "props": {
-                  "text": "This screen is rendered from your compiled low-code artifact."
+                  "text": ""
                 }
               },
               {
@@ -73,15 +88,17 @@
             "bindings": {},
             "children": [
               {
-                "bindings": {},
+                "bindings": {
+                  "body": "state.customerName"
+                },
                 "classList": [],
                 "componentType": "card",
                 "events": {},
                 "kind": "component",
                 "nodeId": "side-card",
                 "props": {
-                  "body": "Renderer connected successfully.",
-                  "title": "Status"
+                  "body": "",
+                  "title": "Live state"
                 }
               },
               {
@@ -96,7 +113,7 @@
                     "Schema validation",
                     "IR compilation",
                     "React renderer",
-                    "Screen navigation"
+                    "Runtime state bindings"
                   ]
                 }
               }
@@ -140,6 +157,19 @@
                 }
               },
               {
+                "bindings": {
+                  "text": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "basket-customer-name",
+                "props": {
+                  "text": ""
+                }
+              },
+              {
                 "bindings": {},
                 "classList": [],
                 "componentType": "card",
@@ -147,7 +177,7 @@
                 "kind": "component",
                 "nodeId": "basket-card",
                 "props": {
-                  "body": "Navigation is working.",
+                  "body": "Navigation is working and state is preserved across screens.",
                   "title": "Basket screen reached"
                 }
               },

@@ -1,11 +1,11 @@
 # Recommended Next Steps
 
 ## Short-term
-1. add renderer tests
-2. add richer sample DSLs
-3. add state bindings support
-4. implement callService preview behavior
-5. add watch mode for compiler + preview sync
+1. implement callService preview behavior
+2. add richer sample DSL scenarios
+3. add watch mode for compiler + preview sync
+4. add renderer interaction tests
+5. define authoring-facing metadata for bindable component props
 
 ## Medium-term
 1. create authoring studio foundation
@@ -15,8 +15,9 @@
 5. begin Android renderer spike
 
 ## Suggested priority order
-1. binding engine
-2. richer actions
-3. authoring metadata model
-4. checkout domain model
-5. Android runtime foundation
+1. richer actions
+2. richer examples
+3. renderer test coverage
+4. authoring metadata model
+5. checkout domain model
+6. Android runtime foundation

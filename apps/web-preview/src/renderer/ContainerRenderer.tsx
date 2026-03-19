@@ -13,13 +13,27 @@ function getColumnClasses(node: IrContainerNode): string {
   const span = node.layout?.span ?? {};
   const parts: string[] = [];
 
-  if (span.xs) parts.push(`col-${span.xs}`);
-  else parts.push("col-12");
+  if (span.xs) {
+    parts.push(`col-${span.xs}`);
+  } else {
+    parts.push("col-12");
+  }
 
-  if (span.sm) parts.push(`col-sm-${span.sm}`);
-  if (span.md) parts.push(`col-md-${span.md}`);
-  if (span.lg) parts.push(`col-lg-${span.lg}`);
-  if (span.xl) parts.push(`col-xl-${span.xl}`);
+  if (span.sm) {
+    parts.push(`col-sm-${span.sm}`);
+  }
+
+  if (span.md) {
+    parts.push(`col-md-${span.md}`);
+  }
+
+  if (span.lg) {
+    parts.push(`col-lg-${span.lg}`);
+  }
+
+  if (span.xl) {
+    parts.push(`col-xl-${span.xl}`);
+  }
 
   return parts.join(" ");
 }
@@ -36,7 +50,7 @@ export function ContainerRenderer({ node }: ContainerRendererProps) {
   }
 
   return (
-    <div className={className.filter(Boolean).join(" ")} data-node-id={node.nodeId}>
+    <div className={className.filter(Boolean).join(" ")}>
       {node.children.map((child) => (
         <NodeRenderer key={child.nodeId} node={child} />
       ))}

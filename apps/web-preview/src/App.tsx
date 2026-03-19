@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import type { AppIr, ScreenIr } from "@lowcode/ir";
-import { RuntimeProvider } from "./runtime/RuntimeContext";
+import type { AppIr } from "@lowcode/ir";
 import { ScreenRenderer } from "./renderer/ScreenRenderer";
+import { RuntimeProvider } from "./runtime/RuntimeContext";
 
 export default function App() {
   const [app, setApp] = useState<AppIr | null>(null);
@@ -15,10 +15,12 @@ export default function App() {
         if (!response.ok) {
           throw new Error(`Failed to load main.web.json: ${response.status}`);
         }
+
         return response.json();
       })
       .then((data: AppIr) => {
         setApp(data);
+
         if (data.screens.length > 0) {
           setCurrentScreenId(data.screens[0].id);
         }
@@ -28,17 +30,16 @@ export default function App() {
       });
   }, []);
 
-  const currentScreen = useMemo<ScreenIr | null>(() => {
-    if (!app || !currentScreenId) return null;
+  const currentScreen = useMemo(() => {
+    if (!app || !currentScreenId) {
+      return null;
+    }
+
     return app.screens.find((screen) => screen.id === currentScreenId) ?? null;
   }, [app, currentScreenId]);
 
   if (error) {
-    return (
-      <div className="container py-4">
-        <div className="alert alert-danger">{error}</div>
-      </div>
-    );
+    return <div className="container py-4 text-danger">{error}</div>;
   }
 
   if (!app || !currentScreen) {
@@ -49,27 +50,25 @@ export default function App() {
     <RuntimeProvider
       value={{
         app,
-        currentScreenId,
+        currentScreenId: currentScreen.id,
         navigate: setCurrentScreenId,
         stateStore,
-        setStateValue: (key, value) =>
-          setStateStore((prev) => ({ ...prev, [key]: value }))
+        setStateValue: (key, value) => {
+          setStateStore((prev) => ({
+            ...prev,
+            [key]: value
+          }));
+        }
       }}
     >
-      <div className="preview-shell">
-        <header className="border-bottom bg-white">
-          <div className="container py-3 d-flex justify-content-between align-items-center">
-            <div>
-              <h1 className="h4 mb-0">{app.app.name}</h1>
-              <small className="text-muted">Screen: {currentScreen.title}</small>
-            </div>
-            <span className="badge text-bg-secondary">schema {app.version}</span>
-          </div>
+      <div className="preview-shell container py-4">
+        <header className="mb-4">
+          <h1 className="h3 mb-1">{app.app.name}</h1>
+          <div className="text-muted">Screen: {currentScreen.title}</div>
+          <div className="small text-muted">schema {app.version}</div>
         </header>
 
-        <main className="container py-4">
-          <ScreenRenderer screen={currentScreen} />
-        </main>
+        <ScreenRenderer screen={currentScreen} />
       </div>
     </RuntimeProvider>
   );

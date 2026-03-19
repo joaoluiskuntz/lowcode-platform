@@ -18,20 +18,25 @@
 - basic component rendering
 - navigation between screens
 - one-command preview workflow via `npm run dev:preview`
+- automated contract tests for validator and compiler
+- state-driven bindings in the web preview renderer
 
 ## Verified behaviors
 - compile example DSL successfully
 - compiler CLI compiles JSON files with or without UTF-8 BOM
+- valid DSL compiles successfully
+- invalid navigation target fails validation
+- duplicate component ids fail validation
+- repeated compiles produce the same content hash
 - load compiled main.web.json in web-preview
 - render first screen
 - navigate between Home and Basket
-- display cards, text, list, button
-- compile sample DSL, copy generated web IR, and start preview with one command
+- input updates runtime state
+- text and card content can resolve from state bindings
+- state survives screen navigation in the preview runtime
 
 ## Not implemented yet
 - authoring studio
-- bindings expression engine
-- device adapters
 - Android runtime
 - API/service execution
 - offline strategy
@@ -44,3 +49,4 @@
 - improve asset handling
 - improve package build ergonomics
 - add watch mode for compiler + preview sync
+- expand binding coverage beyond the first safe state-based model
