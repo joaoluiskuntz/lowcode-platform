@@ -1,17 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-type ComponentType =
-  | "text"
-  | "button"
-  | "input"
-  | "textarea"
-  | "select"
-  | "image"
-  | "card"
-  | "alert"
-  | "badge"
-  | "checkbox"
-  | "divider";
+type ComponentType = "text" | "button" | "input" | "textarea" | "select" | "image" | "card" | "alert" | "badge" | "checkbox" | "divider";
 
 type ComponentNode = {
   id: string;
@@ -25,7 +14,7 @@ type ColumnNode = {
   type: "column";
   span: number;
   classList: string[];
-  children: CanvasChild[];
+  children: Array<ComponentNode | RowNode>;
 };
 
 type RowNode = {
@@ -34,8 +23,6 @@ type RowNode = {
   classList: string[];
   children: ColumnNode[];
 };
-
-type CanvasChild = ComponentNode | RowNode;
 
 type ScreenNode = {
   id: string;
@@ -64,33 +51,20 @@ type Selection =
   | { kind: "column"; screenId: string; rowId: string; columnId: string; parentColumnId?: string }
   | { kind: "component"; screenId: string; rowId: string; columnId: string; componentId: string; parentColumnId?: string };
 
-type DragState = {
-  componentId: string;
-  sourceColumnId: string;
-  sourceRowId: string;
-};
-
-type DropTarget =
-  | { type: "column"; columnId: string }
-  | { type: "free-space"; rowId: string }
-  | null;
-
 type StudioTab = "designer" | "dsl" | "xml" | "webIr" | "androidIr" | "manifest";
 
-const componentTypes: ComponentType[] = [
-  "text",
-  "button",
-  "input",
-  "textarea",
-  "select",
-  "image",
-  "card",
-  "alert",
-  "badge",
-  "checkbox",
-  "divider"
-];
+type DragState =
+  | { kind: "row"; rowId: string }
+  | { kind: "column"; columnId: string; rowId: string }
+  | { kind: "component"; componentId: string; rowId: string; columnId: string };
 
+type DropTarget =
+  | { kind: "row"; rowId: string; position: "before" | "after" }
+  | { kind: "column"; rowId: string; columnId: string; position: "before" | "after" | "inside" }
+  | { kind: "free-space"; rowId: string }
+  | null;
+
+const componentTypes: ComponentType[] = ["text", "button", "input", "textarea", "select", "image", "card", "alert", "badge", "checkbox", "divider"];
 const buttonVariants = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark", "outline-primary", "outline-secondary", "outline-success", "outline-danger"];
 const alertVariants = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"];
 const badgeVariants = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"];
@@ -105,10 +79,13 @@ const roundedMap: Record<string, string> = { Default: "", Small: "rounded-1", Me
 const shadowOptions = ["Default", "Small", "Medium", "Large", "None"];
 const shadowMap: Record<string, string> = { Default: "", Small: "shadow-sm", Medium: "shadow", Large: "shadow-lg", None: "shadow-none" };
 const spacingOptions = ["Default", "0", "1", "2", "3", "4", "5"];
-const columnSpanOptions = [1,2,3,4,5,6,7,8,9,10,11,12];
 
 function uid(prefix: string): string {
-  return prefix + "_" + Math.random().toString(36).slice(2, 10);
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function cloneValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
 }
 
 function createComponent(type: ComponentType): ComponentNode {
@@ -126,12 +103,7 @@ function createComponent(type: ComponentType): ComponentNode {
 }
 
 function createRow(): RowNode {
-  return {
-    id: uid("row"),
-    type: "row",
-    classList: ["g-3"],
-    children: []
-  };
+  return { id: uid("row"), type: "row", classList: ["g-3"], children: [] };
 }
 
 function createInitialDsl(): LowCodeDsl {
@@ -161,12 +133,6 @@ function createInitialDsl(): LowCodeDsl {
                     type: "text",
                     classList: ["fs-2", "fw-bold", "text-center"],
                     props: { text: "Welcome to Self Checkout" }
-                  },
-                  {
-                    id: uid("cmp"),
-                    type: "button",
-                    classList: ["btn", "btn-primary"],
-                    props: { text: "Start", variant: "primary", size: "" }
                   }
                 ]
               }
@@ -176,6 +142,10 @@ function createInitialDsl(): LowCodeDsl {
       }
     ]
   };
+}
+
+function safeStringify(value: unknown): string {
+  return JSON.stringify(value, null, 2);
 }
 
 function escapeXml(value: string): string {
@@ -225,20 +195,17 @@ function getRowUsedSpan(row: RowNode): number {
   return row.children.reduce((sum, column) => sum + column.span, 0);
 }
 
-function findLabelFromMap(classList: string[], map: Record<string, string>, fallback: string): string {
-  for (const [label, value] of Object.entries(map)) {
-    if (value && classList.includes(value)) return label;
-  }
-  return fallback;
+function getMaxSpanForColumn(row: RowNode, columnId: string): number {
+  return 12 - row.children.filter((column) => column.id !== columnId).reduce((sum, column) => sum + column.span, 0);
 }
 
-function findRowInTree(rows: RowNode[], rowId: string): RowNode | undefined {
+function findRow(rows: RowNode[], rowId: string): RowNode | undefined {
   for (const row of rows) {
     if (row.id === rowId) return row;
     for (const column of row.children) {
       for (const child of column.children) {
         if (child.type === "row") {
-          const found = findRowInTree([child], rowId);
+          const found = findRow([child], rowId);
           if (found) return found;
         }
       }
@@ -247,13 +214,13 @@ function findRowInTree(rows: RowNode[], rowId: string): RowNode | undefined {
   return undefined;
 }
 
-function findComponentInTree(rows: RowNode[], componentId: string): ComponentNode | undefined {
+function findComponent(rows: RowNode[], componentId: string): ComponentNode | undefined {
   for (const row of rows) {
     for (const column of row.children) {
       for (const child of column.children) {
         if (child.type !== "row" && child.id === componentId) return child;
         if (child.type === "row") {
-          const found = findComponentInTree([child], componentId);
+          const found = findComponent([child], componentId);
           if (found) return found;
         }
       }
@@ -262,25 +229,27 @@ function findComponentInTree(rows: RowNode[], componentId: string): ComponentNod
   return undefined;
 }
 
-function getSelectedScreen(dsl: LowCodeDsl, selection: Selection): ScreenNode | undefined {
-  return dsl.screens.find((screen) => screen.id === selection.screenId);
+function findColumnAndRow(rows: RowNode[], columnId: string): { rowId: string; column: ColumnNode } | undefined {
+  for (const row of rows) {
+    const column = row.children.find((item) => item.id === columnId);
+    if (column) return { rowId: row.id, column };
+    for (const childColumn of row.children) {
+      for (const child of childColumn.children) {
+        if (child.type === "row") {
+          const found = findColumnAndRow([child], columnId);
+          if (found) return found;
+        }
+      }
+    }
+  }
+  return undefined;
 }
 
-function getSelectedRow(dsl: LowCodeDsl, selection: Selection): RowNode | undefined {
-  const screen = getSelectedScreen(dsl, selection);
-  if (!screen || selection.kind === "screen") return undefined;
-  return findRowInTree(screen.rows, selection.rowId);
-}
-
-function cloneRows(rows: RowNode[]): RowNode[] {
-  return rows.map((row) => ({
-    ...row,
-    children: row.children.map((column) => ({
-      ...column,
-      classList: [...column.classList],
-      children: column.children.map((child) => child.type === "row" ? cloneRows([child])[0] : { ...child, classList: [...child.classList], props: { ...child.props } })
-    }))
-  }));
+function replaceClassMap(classList: string[], map: Record<string, string>, label: string): string[] {
+  const values = Object.values(map).filter(Boolean);
+  const cleaned = classList.filter((item) => !values.includes(item));
+  const nextValue = map[label];
+  return nextValue ? [...cleaned, nextValue] : cleaned;
 }
 
 function updateRowsAddColumn(rows: RowNode[], targetRowId: string, column: ColumnNode): RowNode[] {
@@ -322,33 +291,33 @@ function updateRowsAddComponent(rows: RowNode[], targetColumnId: string, compone
   }));
 }
 
-function updateComponentInTree(rows: RowNode[], componentId: string, patch: Partial<ComponentNode>): RowNode[] {
+function updateRowsComponent(rows: RowNode[], componentId: string, patch: Partial<ComponentNode>): RowNode[] {
   return rows.map((row) => ({
     ...row,
     children: row.children.map((column) => ({
       ...column,
       children: column.children.map((child) => {
-        if (child.type === "row") return updateComponentInTree([child], componentId, patch)[0];
+        if (child.type === "row") return updateRowsComponent([child], componentId, patch)[0];
         return child.id === componentId ? { ...child, ...patch } : child;
       })
     }))
   }));
 }
 
-function updateColumnInTree(rows: RowNode[], columnId: string, patch: Partial<ColumnNode>): RowNode[] {
+function updateRowsColumn(rows: RowNode[], columnId: string, patch: Partial<ColumnNode>): RowNode[] {
   return rows.map((row) => ({
     ...row,
     children: row.children.map((column) => {
       if (column.id === columnId) return { ...column, ...patch };
       return {
         ...column,
-        children: column.children.map((child) => child.type === "row" ? updateColumnInTree([child], columnId, patch)[0] : child)
+        children: column.children.map((child) => child.type === "row" ? updateRowsColumn([child], columnId, patch)[0] : child)
       };
     })
   }));
 }
 
-function removeRowFromTree(rows: RowNode[], rowId: string): RowNode[] {
+function removeRowsRow(rows: RowNode[], rowId: string): RowNode[] {
   return rows
     .filter((row) => row.id !== rowId)
     .map((row) => ({
@@ -357,141 +326,89 @@ function removeRowFromTree(rows: RowNode[], rowId: string): RowNode[] {
         ...column,
         children: column.children
           .filter((child) => child.type !== "row" || child.id !== rowId)
-          .map((child) => child.type === "row" ? removeRowFromTree([child], rowId)[0] ?? child : child)
+          .map((child) => child.type === "row" ? removeRowsRow([child], rowId)[0] ?? child : child)
       }))
     }));
 }
 
-function removeColumnFromTree(rows: RowNode[], columnId: string): RowNode[] {
+function removeRowsColumn(rows: RowNode[], columnId: string): RowNode[] {
   return rows.map((row) => ({
     ...row,
     children: row.children
       .filter((column) => column.id !== columnId)
       .map((column) => ({
         ...column,
-        children: column.children.map((child) => child.type === "row" ? removeColumnFromTree([child], columnId)[0] : child)
+        children: column.children.map((child) => child.type === "row" ? removeRowsColumn([child], columnId)[0] : child)
       }))
   }));
 }
 
-function removeComponentFromTree(rows: RowNode[], componentId: string): RowNode[] {
+function removeRowsComponent(rows: RowNode[], componentId: string): RowNode[] {
   return rows.map((row) => ({
     ...row,
     children: row.children.map((column) => ({
       ...column,
       children: column.children
         .filter((child) => child.type === "row" || child.id !== componentId)
-        .map((child) => child.type === "row" ? removeComponentFromTree([child], componentId)[0] : child)
+        .map((child) => child.type === "row" ? removeRowsComponent([child], componentId)[0] : child)
     }))
   }));
 }
 
-function findRowAndColumnForComponent(rows: RowNode[], componentId: string, parentColumnId?: string): { rowId: string; columnId: string; parentColumnId?: string } | undefined {
-  for (const row of rows) {
-    for (const column of row.children) {
-      for (const child of column.children) {
-        if (child.type !== "row" && child.id === componentId) return { rowId: row.id, columnId: column.id, parentColumnId };
-        if (child.type === "row") {
-          const found = findRowAndColumnForComponent([child], componentId, column.id);
-          if (found) return found;
-        }
-      }
-    }
-  }
-  return undefined;
+function moveTopLevelRow(rows: RowNode[], draggedRowId: string, targetRowId: string, position: "before" | "after"): RowNode[] {
+  const nextRows = [...rows];
+  const draggedIndex = nextRows.findIndex((row) => row.id === draggedRowId);
+  const targetIndex = nextRows.findIndex((row) => row.id === targetRowId);
+  if (draggedIndex < 0 || targetIndex < 0 || draggedRowId === targetRowId) return rows;
+  const [dragged] = nextRows.splice(draggedIndex, 1);
+  const updatedTargetIndex = nextRows.findIndex((row) => row.id === targetRowId);
+  nextRows.splice(position === "before" ? updatedTargetIndex : updatedTargetIndex + 1, 0, dragged);
+  return nextRows;
 }
 
-function findColumnAndOwnerRow(rows: RowNode[], columnId: string): { row: RowNode; column: ColumnNode } | undefined {
-  for (const row of rows) {
-    for (const column of row.children) {
-      if (column.id === columnId) return { row, column };
-      for (const child of column.children) {
-        if (child.type === "row") {
-          const found = findColumnAndOwnerRow([child], columnId);
-          if (found) return found;
-        }
-      }
-    }
-  }
-  return undefined;
-}
+function moveColumn(rows: RowNode[], draggedColumnId: string, targetRowId: string, targetColumnId?: string, position: "before" | "after" | "inside" = "inside"): RowNode[] {
+  const cloned = cloneValue(rows);
+  let draggedColumn: ColumnNode | undefined;
 
-function moveComponentInTree(rows: RowNode[], componentId: string, targetColumnId: string): RowNode[] {
-  let movedComponent: ComponentNode | undefined;
-
-  function removeFromRows(sourceRows: RowNode[]): RowNode[] {
-    return sourceRows.map((row) => ({
+  function removeColumnFromRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => ({
       ...row,
-      children: row.children.map((column) => ({
-        ...column,
-        children: column.children
-          .filter((child) => {
-            if (child.type !== "row" && child.id === componentId) {
-              movedComponent = { ...child, classList: [...child.classList], props: { ...child.props } };
-              return false;
-            }
-            return true;
-          })
-          .map((child) => child.type === "row" ? removeFromRows([child])[0] : child)
-      }))
-    }));
-  }
-
-  function insertIntoRows(targetRows: RowNode[]): RowNode[] {
-    return targetRows.map((row) => ({
-      ...row,
-      children: row.children.map((column) => {
-        if (column.id === targetColumnId && movedComponent) return { ...column, children: [...column.children, movedComponent] };
-        return {
+      children: row.children
+        .filter((column) => {
+          if (column.id === draggedColumnId) {
+            draggedColumn = column;
+            return false;
+          }
+          return true;
+        })
+        .map((column) => ({
           ...column,
-          children: column.children.map((child) => child.type === "row" ? insertIntoRows([child])[0] : child)
-        };
-      })
+          children: column.children.map((child) => child.type === "row" ? removeColumnFromRows([child])[0] : child)
+        }))
     }));
   }
 
-  const removed = removeFromRows(cloneRows(rows));
-  if (!movedComponent) return rows;
-  return insertIntoRows(removed);
-}
+  const withoutDragged = removeColumnFromRows(cloned);
+  if (!draggedColumn) return rows;
 
-function moveComponentToFreeSpace(rows: RowNode[], componentId: string, targetRowId: string, preferredSpan: number): RowNode[] {
-  let movedComponent: ComponentNode | undefined;
-
-  function removeFromRows(sourceRows: RowNode[]): RowNode[] {
-    return sourceRows.map((row) => ({
-      ...row,
-      children: row.children.map((column) => ({
-        ...column,
-        children: column.children
-          .filter((child) => {
-            if (child.type !== "row" && child.id === componentId) {
-              movedComponent = { ...child, classList: [...child.classList], props: { ...child.props } };
-              return false;
-            }
-            return true;
-          })
-          .map((child) => child.type === "row" ? removeFromRows([child])[0] : child)
-      }))
-    }));
-  }
-
-  function insertIntoRows(targetRows: RowNode[]): RowNode[] {
-    return targetRows.map((row) => {
-      if (row.id === targetRowId && movedComponent) {
-        const remaining = 12 - getRowUsedSpan(row);
-        const span = Math.min(preferredSpan, remaining);
-        if (span < 1) return row;
-        const newColumn: ColumnNode = {
-          id: uid("col"),
-          type: "column",
-          span,
-          classList: [],
-          children: [movedComponent]
-        };
-        return { ...row, children: [...row.children, newColumn] };
+  function insertIntoRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => {
+      if (row.id === targetRowId) {
+        const used = getRowUsedSpan(row);
+        if (used + draggedColumn!.span > 12) return row;
+        const nextChildren = [...row.children];
+        if (!targetColumnId || position === "inside") {
+          nextChildren.push(draggedColumn!);
+          return { ...row, children: nextChildren };
+        }
+        const targetIndex = nextChildren.findIndex((column) => column.id === targetColumnId);
+        if (targetIndex < 0) {
+          nextChildren.push(draggedColumn!);
+          return { ...row, children: nextChildren };
+        }
+        nextChildren.splice(position === "before" ? targetIndex : targetIndex + 1, 0, draggedColumn!);
+        return { ...row, children: nextChildren };
       }
-
       return {
         ...row,
         children: row.children.map((column) => ({
@@ -502,67 +419,143 @@ function moveComponentToFreeSpace(rows: RowNode[], componentId: string, targetRo
     });
   }
 
-  const removed = removeFromRows(cloneRows(rows));
-  if (!movedComponent) return rows;
-  return insertIntoRows(removed);
+  return insertIntoRows(withoutDragged);
 }
 
-function getMaxSpanForColumn(row: RowNode, columnId: string): number {
-  const otherUsed = row.children.filter((column) => column.id !== columnId).reduce((sum, column) => sum + column.span, 0);
-  return 12 - otherUsed;
+function moveComponent(rows: RowNode[], componentId: string, targetColumnId: string): RowNode[] {
+  const cloned = cloneValue(rows);
+  let draggedComponent: ComponentNode | undefined;
+
+  function removeComponentFromRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => ({
+      ...row,
+      children: row.children.map((column) => ({
+        ...column,
+        children: column.children
+          .filter((child) => {
+            if (child.type !== "row" && child.id === componentId) {
+              draggedComponent = child;
+              return false;
+            }
+            return true;
+          })
+          .map((child) => child.type === "row" ? removeComponentFromRows([child])[0] : child)
+      }))
+    }));
+  }
+
+  const withoutDragged = removeComponentFromRows(cloned);
+  if (!draggedComponent) return rows;
+
+  function insertIntoRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => ({
+      ...row,
+      children: row.children.map((column) => {
+        if (column.id === targetColumnId) return { ...column, children: [...column.children, draggedComponent!] };
+        return {
+          ...column,
+          children: column.children.map((child) => child.type === "row" ? insertIntoRows([child])[0] : child)
+        };
+      })
+    }));
+  }
+
+  return insertIntoRows(withoutDragged);
 }
 
-function extractComponentDraft(component: ComponentNode) {
-  return JSON.parse(JSON.stringify(component));
-}
+function moveComponentToFreeSpace(rows: RowNode[], componentId: string, sourceColumnId: string, targetRowId: string): RowNode[] {
+  const source = findColumnAndRow(rows, sourceColumnId);
+  if (!source) return rows;
 
-function safeJsonStringify(value: unknown): string {
-  return JSON.stringify(value, null, 2);
+  const cloned = cloneValue(rows);
+  let draggedComponent: ComponentNode | undefined;
+
+  function removeComponentFromRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => ({
+      ...row,
+      children: row.children.map((column) => ({
+        ...column,
+        children: column.children
+          .filter((child) => {
+            if (child.type !== "row" && child.id === componentId) {
+              draggedComponent = child;
+              return false;
+            }
+            return true;
+          })
+          .map((child) => child.type === "row" ? removeComponentFromRows([child])[0] : child)
+      }))
+    }));
+  }
+
+  const withoutDragged = removeComponentFromRows(cloned);
+  if (!draggedComponent) return rows;
+
+  function insertIntoRows(input: RowNode[]): RowNode[] {
+    return input.map((row) => {
+      if (row.id === targetRowId) {
+        const remaining = 12 - getRowUsedSpan(row);
+        if (remaining <= 0) return row;
+        const span = Math.min(source.column.span, remaining);
+        const newColumn: ColumnNode = { id: uid("col"), type: "column", span, classList: [], children: [draggedComponent!] };
+        return { ...row, children: [...row.children, newColumn] };
+      }
+      return {
+        ...row,
+        children: row.children.map((column) => ({
+          ...column,
+          children: column.children.map((child) => child.type === "row" ? insertIntoRows([child])[0] : child)
+        }))
+      };
+    });
+  }
+
+  return insertIntoRows(withoutDragged);
 }
 
 function App() {
   const [dsl, setDsl] = useState<LowCodeDsl>(createInitialDsl());
   const [selection, setSelection] = useState<Selection>({ kind: "screen", screenId: "screen_home" });
-  const [newColumnSpan, setNewColumnSpan] = useState<number>(6);
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const [dropTarget, setDropTarget] = useState<DropTarget>(null);
-  const [openAddMenuColumnId, setOpenAddMenuColumnId] = useState<string | null>(null);
   const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
   const [draftComponent, setDraftComponent] = useState<ComponentNode | null>(null);
   const [activeTab, setActiveTab] = useState<StudioTab>("designer");
-  const [dslEditorText, setDslEditorText] = useState<string>(safeJsonStringify(createInitialDsl()));
+  const [dslEditorText, setDslEditorText] = useState<string>(safeStringify(createInitialDsl()));
   const [dslEditorError, setDslEditorError] = useState<string>("");
+  const [dragState, setDragState] = useState<DragState | null>(null);
+  const [dropTarget, setDropTarget] = useState<DropTarget>(null);
 
   useEffect(() => {
-    setDslEditorText(safeJsonStringify(dsl));
+    setDslEditorText(safeStringify(dsl));
   }, [dsl]);
 
-  const selectedScreen = getSelectedScreen(dsl, selection) ?? dsl.screens[0];
-  const selectedRow = getSelectedRow(dsl, selection);
+  const selectedScreen = dsl.screens.find((screen) => screen.id === selection.screenId) ?? dsl.screens[0];
 
   const artifactBundle = useMemo(() => {
     const webIr = { target: "web", app: dsl.app, theme: dsl.theme, screens: dsl.screens };
     const androidIr = { target: "android", app: dsl.app, theme: dsl.theme, screens: dsl.screens };
     const manifest = { appId: dsl.app.id, appName: dsl.app.name, schemaVersion: dsl.schemaVersion, targets: ["web", "android"], screenCount: dsl.screens.length };
-
     return {
-      dsl: safeJsonStringify(dsl),
+      dsl: safeStringify(dsl),
       xml: dslToXml(dsl),
-      webIr: safeJsonStringify(webIr),
-      androidIr: safeJsonStringify(androidIr),
-      manifest: safeJsonStringify(manifest)
+      webIr: safeStringify(webIr),
+      androidIr: safeStringify(androidIr),
+      manifest: safeStringify(manifest)
     };
   }, [dsl]);
+
+  function updateDsl(mutator: (current: LowCodeDsl) => LowCodeDsl) {
+    setDsl((current) => mutator(current));
+  }
 
   function applyDslFromEditor() {
     try {
       const parsed = JSON.parse(dslEditorText) as LowCodeDsl;
-      if (!parsed || !parsed.screens || !Array.isArray(parsed.screens)) {
-        setDslEditorError("Invalid DSL: screens array is required.");
+      if (!parsed || !Array.isArray(parsed.screens) || parsed.screens.length === 0) {
+        setDslEditorError("Invalid DSL.");
         return;
       }
       setDsl(parsed);
-      setDlsSelectionSafely(parsed);
+      setSelection({ kind: "screen", screenId: parsed.screens[0].id });
       setDslEditorError("");
       setActiveTab("designer");
     } catch (error) {
@@ -570,21 +563,102 @@ function App() {
     }
   }
 
-  function setDlsSelectionSafely(nextDsl: LowCodeDsl) {
-    const firstScreen = nextDsl.screens[0];
-    if (!firstScreen) return;
-    setSelection({ kind: "screen", screenId: firstScreen.id });
+  function addScreen() {
+    const newScreen: ScreenNode = { id: uid("screen"), title: "New Screen", classList: ["container-fluid", "py-3"], rows: [createRow()] };
+    updateDsl((current) => ({ ...current, screens: [...current.screens, newScreen] }));
+    setSelection({ kind: "screen", screenId: newScreen.id });
   }
 
-  function updateDsl(mutator: (current: LowCodeDsl) => LowCodeDsl) {
-    setDsl((current) => mutator(current));
+  function addRowToScreen() {
+    const newRow = createRow();
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id === selectedScreen.id ? { ...screen, rows: [...screen.rows, newRow] } : screen)
+    }));
+  }
+
+  function addColumnToRow(rowId: string) {
+    const row = findRow(selectedScreen.rows, rowId);
+    if (!row) return;
+    const remaining = 12 - getRowUsedSpan(row);
+    if (remaining <= 0) {
+      alert("This row already uses all 12 columns.");
+      return;
+    }
+    const newColumn: ColumnNode = { id: uid("col"), type: "column", span: remaining, classList: [], children: [] };
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsAddColumn(screen.rows, rowId, newColumn) })
+    }));
+  }
+
+  function addNestedRowToColumn(columnId: string) {
+    const nestedRow = createRow();
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsAddNestedRow(screen.rows, columnId, nestedRow) })
+    }));
+    setSelection({ kind: "screen", screenId: selectedScreen.id });
+  }
+
+  function addComponentToColumn(type: ComponentType, columnId: string) {
+    const component = createComponent(type);
+    const nextRows = updateRowsAddComponent(selectedScreen.rows, columnId, component);
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: nextRows })
+    }));
+    setSelection({ kind: "screen", screenId: selectedScreen.id });
+  }
+
+  function removeScreen(screenId: string) {
+    if (dsl.screens.length === 1) {
+      alert("At least one screen is required.");
+      return;
+    }
+    const nextScreens = dsl.screens.filter((screen) => screen.id !== screenId);
+    updateDsl((current) => ({ ...current, screens: nextScreens }));
+    setSelection({ kind: "screen", screenId: nextScreens[0].id });
+  }
+
+  function removeRow(rowId: string) {
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: removeRowsRow(screen.rows, rowId) })
+    }));
+  }
+
+  function removeColumn(columnId: string) {
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: removeRowsColumn(screen.rows, columnId) })
+    }));
+    setSelection({ kind: "screen", screenId: selectedScreen.id });
+  }
+
+  function removeComponent(componentId: string) {
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: removeRowsComponent(screen.rows, componentId) })
+    }));
+  }
+
+  function resizeColumn(row: RowNode, columnId: string, currentSpan: number, direction: "increase" | "decrease") {
+    const nextSpan = direction === "increase" ? currentSpan + 1 : currentSpan - 1;
+    if (nextSpan < 1) return;
+    const maxSpan = getMaxSpanForColumn(row, columnId);
+    if (nextSpan > maxSpan) return;
+    updateDsl((current) => ({
+      ...current,
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsColumn(screen.rows, columnId, { span: nextSpan }) })
+    }));
   }
 
   function openComponentSettings(componentId: string) {
-    const component = findComponentInTree(selectedScreen.rows, componentId);
+    const component = findComponent(selectedScreen.rows, componentId);
     if (!component) return;
     setEditingComponentId(componentId);
-    setDraftComponent(extractComponentDraft(component));
+    setDraftComponent(cloneValue(component));
   }
 
   function closeComponentSettings() {
@@ -596,16 +670,9 @@ function App() {
     if (!editingComponentId || !draftComponent) return;
     updateDsl((current) => ({
       ...current,
-      screens: current.screens.map((screen) =>
-        screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateComponentInTree(screen.rows, editingComponentId, draftComponent) }
-      )
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsComponent(screen.rows, editingComponentId, draftComponent) })
     }));
     closeComponentSettings();
-  }
-
-  function updateDraftComponent(patch: Partial<ComponentNode>) {
-    if (!draftComponent) return;
-    setDraftComponent({ ...draftComponent, ...patch });
   }
 
   function setDraftProp(name: string, value: any) {
@@ -615,10 +682,7 @@ function App() {
 
   function replaceDraftClassMap(map: Record<string, string>, label: string) {
     if (!draftComponent) return;
-    const values = Object.values(map).filter(Boolean);
-    const cleaned = draftComponent.classList.filter((item) => !values.includes(item));
-    const nextValue = map[label];
-    setDraftComponent({ ...draftComponent, classList: nextValue ? [...cleaned, nextValue] : cleaned });
+    setDraftComponent({ ...draftComponent, classList: replaceClassMap(draftComponent.classList, map, label) });
   }
 
   function updateDraftButtonVariant(variant: string) {
@@ -660,203 +724,53 @@ function App() {
     setDraftComponent({ ...draftComponent, classList: next });
   }
 
-  function addScreen() {
-    const newScreen: ScreenNode = {
-      id: uid("screen"),
-      title: "New Screen",
-      classList: ["container-fluid", "py-3"],
-      rows: [createRow()]
-    };
-    updateDsl((current) => ({ ...current, screens: [...current.screens, newScreen] }));
-    setSelection({ kind: "screen", screenId: newScreen.id });
+  function onRowDragStart(rowId: string) {
+    setDragState({ kind: "row", rowId });
   }
 
-  function addRowToScreen() {
-    const newRow = createRow();
+  function onColumnDragStart(columnId: string, rowId: string) {
+    setDragState({ kind: "column", columnId, rowId });
+  }
+
+  function onComponentDragStart(componentId: string, rowId: string, columnId: string) {
+    setDragState({ kind: "component", componentId, rowId, columnId });
+  }
+
+  function handleRowDrop(targetRowId: string, position: "before" | "after") {
+    if (!dragState || dragState.kind !== "row") return;
+    if (dragState.rowId === targetRowId) return;
+    const nextRows = moveTopLevelRow(selectedScreen.rows, dragState.rowId, targetRowId, position);
     updateDsl((current) => ({
       ...current,
-      screens: current.screens.map((screen) => screen.id === selectedScreen.id ? { ...screen, rows: [...screen.rows, newRow] } : screen)
+      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: nextRows })
     }));
-    setSelection({ kind: "row", screenId: selectedScreen.id, rowId: newRow.id });
-  }
-
-  function addNestedRowToColumn(columnId: string) {
-    const nestedRow = createRow();
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) =>
-        screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsAddNestedRow(screen.rows, columnId, nestedRow) }
-      )
-    }));
-    setSelection({ kind: "row", screenId: selectedScreen.id, rowId: nestedRow.id, parentColumnId: columnId });
-    setOpenAddMenuColumnId(null);
-  }
-
-  function addColumnToRow(rowId: string) {
-    const row = findRowInTree(selectedScreen.rows, rowId);
-    if (!row) return;
-
-    const remaining = 12 - getRowUsedSpan(row);
-    if (remaining <= 0) {
-      alert("This row already uses all 12 Bootstrap columns.");
-      return;
-    }
-
-    const span = Math.min(newColumnSpan, remaining);
-
-    const newColumn: ColumnNode = {
-      id: uid("col"),
-      type: "column",
-      span,
-      classList: [],
-      children: []
-    };
-
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) =>
-        screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsAddColumn(screen.rows, rowId, newColumn) }
-      )
-    }));
-
-    setSelection({ kind: "column", screenId: selectedScreen.id, rowId, columnId: newColumn.id });
-  }
-
-  function addComponentToColumn(type: ComponentType, columnId: string) {
-    const component = createComponent(type);
-    const nextRows = updateRowsAddComponent(selectedScreen.rows, columnId, component);
-
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) =>
-        screen.id !== selectedScreen.id ? screen : { ...screen, rows: updateRowsAddComponent(screen.rows, columnId, component) }
-      )
-    }));
-
-    const owner = findRowAndColumnForComponent(nextRows, component.id);
-
-    if (owner) {
-      setSelection({
-        kind: "component",
-        screenId: selectedScreen.id,
-        rowId: owner.rowId,
-        columnId: owner.columnId,
-        componentId: component.id,
-        parentColumnId: owner.parentColumnId
-      });
-    }
-
-    setOpenAddMenuColumnId(null);
-  }
-
-  function removeScreen(screenId: string) {
-    if (dsl.screens.length === 1) {
-      alert("At least one screen is required.");
-      return;
-    }
-    const nextScreens = dsl.screens.filter((screen) => screen.id !== screenId);
-    updateDsl((current) => ({ ...current, screens: nextScreens }));
-    setSelection({ kind: "screen", screenId: nextScreens[0].id });
-  }
-
-  function removeRow(screenId: string, rowId: string) {
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== screenId ? screen : { ...screen, rows: removeRowFromTree(screen.rows, rowId) })
-    }));
-    setSelection({ kind: "screen", screenId });
-  }
-
-  function removeColumn(screenId: string, columnId: string) {
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== screenId ? screen : { ...screen, rows: removeColumnFromTree(screen.rows, columnId) })
-    }));
-    setSelection({ kind: "screen", screenId });
-  }
-
-  function removeComponent(screenId: string, componentId: string) {
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== screenId ? screen : { ...screen, rows: removeComponentFromTree(screen.rows, componentId) })
-    }));
-    setSelection({ kind: "screen", screenId });
-  }
-
-  function resizeColumn(screenId: string, columnId: string, ownerRow: RowNode, currentSpan: number, direction: "increase" | "decrease") {
-    const nextSpan = direction === "increase" ? currentSpan + 1 : currentSpan - 1;
-    if (nextSpan < 1) return;
-    const maxSpan = getMaxSpanForColumn(ownerRow, columnId);
-    if (nextSpan > maxSpan) return;
-
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== screenId ? screen : { ...screen, rows: updateColumnInTree(screen.rows, columnId, { span: nextSpan }) })
-    }));
-  }
-
-  function handleDragStart(componentId: string, columnId: string, rowId: string) {
-    setDragState({ componentId, sourceColumnId: columnId, sourceRowId: rowId });
-  }
-
-  function handleDropOnColumn(targetColumnId: string) {
-    if (!dragState) return;
-    const nextRows = moveComponentInTree(selectedScreen.rows, dragState.componentId, targetColumnId);
-
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: moveComponentInTree(screen.rows, dragState.componentId, targetColumnId) })
-    }));
-
-    const movedLocation = findRowAndColumnForComponent(nextRows, dragState.componentId);
-
-    if (movedLocation) {
-      setSelection({
-        kind: "component",
-        screenId: selectedScreen.id,
-        rowId: movedLocation.rowId,
-        columnId: movedLocation.columnId,
-        componentId: dragState.componentId,
-        parentColumnId: movedLocation.parentColumnId
-      });
-    }
-
     setDragState(null);
     setDropTarget(null);
   }
 
-  function handleDropOnFreeSpace(targetRowId: string) {
+  function handleColumnDrop(targetRowId: string, targetColumnId?: string, position: "before" | "after" | "inside" = "inside") {
     if (!dragState) return;
 
-    const sourceInfo = findColumnAndOwnerRow(selectedScreen.rows, dragState.sourceColumnId);
-    const targetRow = findRowInTree(selectedScreen.rows, targetRowId);
-    if (!sourceInfo || !targetRow) return;
-
-    const remaining = 12 - getRowUsedSpan(targetRow);
-    if (remaining <= 0) {
-      alert("This row has no free space left.");
-      return;
-    }
-
-    const preferredSpan = sourceInfo.column.span;
-    const nextRows = moveComponentToFreeSpace(selectedScreen.rows, dragState.componentId, targetRowId, preferredSpan);
-
-    updateDsl((current) => ({
-      ...current,
-      screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: moveComponentToFreeSpace(screen.rows, dragState.componentId, targetRowId, preferredSpan) })
-    }));
-
-    const movedLocation = findRowAndColumnForComponent(nextRows, dragState.componentId);
-
-    if (movedLocation) {
-      setSelection({
-        kind: "component",
-        screenId: selectedScreen.id,
-        rowId: movedLocation.rowId,
-        columnId: movedLocation.columnId,
-        componentId: dragState.componentId,
-        parentColumnId: movedLocation.parentColumnId
-      });
+    if (dragState.kind === "column") {
+      const nextRows = moveColumn(selectedScreen.rows, dragState.columnId, targetRowId, targetColumnId, position);
+      updateDsl((current) => ({
+        ...current,
+        screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: nextRows })
+      }));
+    } else if (dragState.kind === "component") {
+      if (targetColumnId) {
+        const nextRows = moveComponent(selectedScreen.rows, dragState.componentId, targetColumnId);
+        updateDsl((current) => ({
+          ...current,
+          screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: nextRows })
+        }));
+      } else {
+        const nextRows = moveComponentToFreeSpace(selectedScreen.rows, dragState.componentId, dragState.columnId, targetRowId);
+        updateDsl((current) => ({
+          ...current,
+          screens: current.screens.map((screen) => screen.id !== selectedScreen.id ? screen : { ...screen, rows: nextRows })
+        }));
+      }
     }
 
     setDragState(null);
@@ -880,23 +794,14 @@ function App() {
     return <hr className={component.classList.join(" ")} />;
   }
 
-  function renderAddMenu(columnId: string) {
-    if (openAddMenuColumnId !== columnId) return null;
-
+  function renderColumnAddMenu(columnId: string) {
     return (
-      <div className="column-add-menu-safe" onClick={(e) => e.stopPropagation()}>
+      <div className="column-add-menu-safe">
         <div className="column-add-menu-title">Add to this column</div>
-        <button type="button" className="btn btn-sm btn-outline-primary w-100 text-start mb-2" onClick={() => addNestedRowToColumn(columnId)}>
-          Nested row
-        </button>
+        <button type="button" className="btn btn-sm btn-outline-primary w-100 text-start mb-2" onClick={() => addNestedRowToColumn(columnId)}>Nested row</button>
         <div className="column-add-grid">
           {componentTypes.map((type) => (
-            <button
-              key={type}
-              type="button"
-              className="btn btn-sm btn-outline-secondary"
-              onClick={() => addComponentToColumn(type, columnId)}
-            >
+            <button key={type} type="button" className="btn btn-sm btn-outline-secondary" onClick={() => addComponentToColumn(type, columnId)}>
               {type}
             </button>
           ))}
@@ -905,89 +810,133 @@ function App() {
     );
   }
 
-  function renderRow(row: RowNode, screenId: string, parentColumnId?: string, level: number = 0): JSX.Element {
-    const remaining = 12 - getRowUsedSpan(row);
+  function renderRow(row: RowNode, level: number = 0): JSX.Element {
+    const rowDropClass =
+      dropTarget?.kind === "row" && dropTarget.rowId === row.id
+        ? dropTarget.position === "before"
+          ? "drop-before"
+          : "drop-after"
+        : "";
 
     return (
-      <div key={row.id} className={`designer-row ${level > 0 ? "designer-row-nested" : ""}`}>
+      <div
+        key={row.id}
+        className={`designer-row ${level > 0 ? "designer-row-nested" : ""} ${rowDropClass}`}
+        draggable={level === 0}
+        onDragStart={() => level === 0 && onRowDragStart(row.id)}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (dragState?.kind === "row" && level === 0) {
+            const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            setDropTarget({ kind: "row", rowId: row.id, position: e.clientY < midpoint ? "before" : "after" });
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (dragState?.kind === "row" && level === 0) {
+            const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            handleRowDrop(row.id, e.clientY < midpoint ? "before" : "after");
+          }
+        }}
+      >
         <div className="designer-row-toolbar">
           <div className="row-action-left">
             <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addColumnToRow(row.id)}>+ Column</button>
           </div>
-          <button type="button" className="btn btn-sm btn-outline-danger icon-button" onClick={() => removeRow(screenId, row.id)}>
-            ×
-          </button>
+          <button type="button" className="btn btn-sm btn-outline-danger icon-button" onClick={() => removeRow(row.id)}>x</button>
         </div>
 
         <div className="designer-grid">
-          {row.children.map((column) => (
-            <div
-              key={column.id}
-              className={[
-                "designer-col",
-                dropTarget?.type === "column" && dropTarget.columnId === column.id ? "designer-col-drop-shadow" : ""
-              ].filter(Boolean).join(" ")}
-              style={{ width: `${(column.span / 12) * 100}%` }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDropTarget({ type: "column", columnId: column.id });
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleDropOnColumn(column.id);
-              }}
-            >
-              <div className="designer-col-header">
-                <div />
-                <div className="designer-col-actions">
-                  <button type="button" className="btn btn-sm btn-outline-secondary span-button" onClick={() => resizeColumn(screenId, column.id, row, column.span, "decrease")} disabled={column.span <= 1}>←</button>
-                  <button type="button" className="btn btn-sm btn-outline-secondary span-button" onClick={() => resizeColumn(screenId, column.id, row, column.span, "increase")} disabled={column.span >= getMaxSpanForColumn(row, column.id)}>→</button>
-                  <button type="button" className="btn btn-sm btn-primary span-button" onClick={() => setOpenAddMenuColumnId(openAddMenuColumnId === column.id ? null : column.id)}>+</button>
-                  <button type="button" className="btn btn-sm btn-outline-danger span-button" onClick={() => removeColumn(screenId, column.id)}>×</button>
+          {row.children.map((column) => {
+            const columnDropClass =
+              dropTarget?.kind === "column" && dropTarget.columnId === column.id
+                ? dropTarget.position === "before"
+                  ? "drop-before"
+                  : dropTarget.position === "after"
+                  ? "drop-after"
+                  : "drop-inside"
+                : "";
+
+            return (
+              <div
+                key={column.id}
+                className={`designer-col ${columnDropClass}`}
+                style={{ width: `${(column.span / 12) * 100}%` }}
+                draggable
+                onDragStart={() => onColumnDragStart(column.id, row.id)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!dragState) return;
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  const midpoint = rect.left + rect.width / 2;
+                  setDropTarget({
+                    kind: "column",
+                    rowId: row.id,
+                    columnId: column.id,
+                    position: dragState.kind === "column" ? (e.clientX < midpoint ? "before" : "after") : "inside"
+                  });
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (!dragState) return;
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  const midpoint = rect.left + rect.width / 2;
+                  handleColumnDrop(row.id, column.id, dragState.kind === "column" ? (e.clientX < midpoint ? "before" : "after") : "inside");
+                }}
+              >
+                <div className="designer-col-header">
+                  <div />
+                  <div className="designer-col-actions">
+                    <button type="button" className="btn btn-sm btn-outline-secondary span-button" onClick={() => resizeColumn(row, column.id, column.span, "decrease")} disabled={column.span <= 1}>{"<"}</button>
+                    <button type="button" className="btn btn-sm btn-outline-secondary span-button" onClick={() => resizeColumn(row, column.id, column.span, "increase")} disabled={column.span >= getMaxSpanForColumn(row, column.id)}>{">"}</button>
+                    <button type="button" className="btn btn-sm btn-primary span-button" onClick={() => setSelection({ kind: "column", screenId: selectedScreen.id, rowId: row.id, columnId: column.id })}>+</button>
+                    <button type="button" className="btn btn-sm btn-outline-danger span-button" onClick={() => removeColumn(column.id)}>x</button>
+                  </div>
+                </div>
+
+                {selection.kind === "column" && selection.columnId === column.id ? renderColumnAddMenu(column.id) : null}
+
+                <div className="designer-col-body">
+                  {column.children.length === 0 ? <div className="empty-column-message">Use + to add content</div> : null}
+
+                  {column.children.map((child) => {
+                    if (child.type === "row") return renderRow(child, level + 1);
+
+                    return (
+                      <div key={child.id} className="designer-component" draggable onDragStart={() => onComponentDragStart(child.id, row.id, column.id)}>
+                        <div className="designer-component-header">
+                          <div />
+                          <div className="designer-component-actions">
+                            <button type="button" className="btn btn-sm btn-outline-secondary mini-action" onClick={() => openComponentSettings(child.id)}>Engine</button>
+                            <button type="button" className="btn btn-sm btn-outline-danger mini-action" onClick={() => removeComponent(child.id)}>x</button>
+                          </div>
+                        </div>
+                        <div>{renderComponent(child)}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+            );
+          })}
 
-              {renderAddMenu(column.id)}
-
-              <div className="designer-col-body">
-                {column.children.length === 0 ? <div className="empty-column-message">Use + to add content</div> : null}
-
-                {column.children.map((child) => {
-                  if (child.type === "row") return renderRow(child, screenId, column.id, level + 1);
-
-                  return (
-                    <div
-                      key={child.id}
-                      className="designer-component"
-                      draggable
-                      onDragStart={() => handleDragStart(child.id, column.id, row.id)}
-                    >
-                      <div className="designer-component-header">
-                        <div />
-                        <div className="designer-component-actions">
-                          <button type="button" className="btn btn-sm btn-outline-secondary mini-action" onClick={() => openComponentSettings(child.id)}>⚙</button>
-                          <button type="button" className="btn btn-sm btn-outline-danger mini-action" onClick={() => removeComponent(screenId, child.id)}>×</button>
-                        </div>
-                      </div>
-                      <div>{renderComponent(child)}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {remaining > 0 ? (
+          {12 - getRowUsedSpan(row) > 0 ? (
             <div
-              className={`designer-col-placeholder ${dropTarget?.type === "free-space" && dropTarget.rowId === row.id ? "designer-col-drop-shadow" : ""}`}
-              style={{ width: `${(remaining / 12) * 100}%` }}
+              className={`designer-col-placeholder ${dropTarget?.kind === "free-space" && dropTarget.rowId === row.id ? "drop-inside" : ""}`}
+              style={{ width: `${((12 - getRowUsedSpan(row)) / 12) * 100}%` }}
               onDragOver={(e) => {
                 e.preventDefault();
-                setDropTarget({ type: "free-space", rowId: row.id });
+                if (dragState?.kind === "column" || dragState?.kind === "component") {
+                  setDropTarget({ kind: "free-space", rowId: row.id });
+                }
               }}
               onDrop={(e) => {
                 e.preventDefault();
-                handleDropOnFreeSpace(row.id);
+                if (dragState?.kind === "column" || dragState?.kind === "component") {
+                  handleColumnDrop(row.id);
+                }
               }}
             >
               +
@@ -998,19 +947,19 @@ function App() {
     );
   }
 
-  function renderArtifactTab() {
-    if (activeTab === "designer") {
-      return (
-        <div className="canvas-card">
-          <div className="canvas-top-actions">
-            <button type="button" className="btn btn-primary" onClick={addRowToScreen}>+ Row</button>
-          </div>
-          <div className="screen-surface">
-            {selectedScreen.rows.map((row) => renderRow(row, selectedScreen.id))}
-          </div>
+  function renderDesigner() {
+    return (
+      <div className="canvas-card">
+        <div className="canvas-top-actions">
+          <button type="button" className="btn btn-primary" onClick={addRowToScreen}>+ Row</button>
         </div>
-      );
-    }
+        <div className="screen-surface">{selectedScreen.rows.map((row) => renderRow(row))}</div>
+      </div>
+    );
+  }
+
+  function renderTabContent() {
+    if (activeTab === "designer") return renderDesigner();
 
     if (activeTab === "dsl") {
       return (
@@ -1019,14 +968,7 @@ function App() {
             <button type="button" className="btn btn-primary" onClick={applyDslFromEditor}>Apply DSL</button>
             {dslEditorError ? <div className="artifact-error">{dslEditorError}</div> : null}
           </div>
-          <textarea
-            className="artifact-editor"
-            value={dslEditorText}
-            onChange={(e) => {
-              setDslEditorText(e.target.value);
-              setDslEditorError("");
-            }}
-          />
+          <textarea className="artifact-editor" value={dslEditorText} onChange={(e) => { setDslEditorText(e.target.value); setDslEditorError(""); }} />
         </div>
       );
     }
@@ -1035,8 +977,7 @@ function App() {
       activeTab === "xml" ? artifactBundle.xml :
       activeTab === "webIr" ? artifactBundle.webIr :
       activeTab === "androidIr" ? artifactBundle.androidIr :
-      activeTab === "manifest" ? artifactBundle.manifest :
-      artifactBundle.dsl;
+      artifactBundle.manifest;
 
     return (
       <div className="artifact-card">
@@ -1062,7 +1003,7 @@ function App() {
                   <button type="button" className={`btn btn-sm text-start flex-grow-1 ${selection.kind === "screen" && selection.screenId === screen.id ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => setSelection({ kind: "screen", screenId: screen.id })}>
                     {screen.title}
                   </button>
-                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeScreen(screen.id)}>×</button>
+                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeScreen(screen.id)}>x</button>
                 </div>
               ))}
               <button type="button" className="btn btn-success btn-sm" onClick={addScreen}>Add screen</button>
@@ -1083,10 +1024,10 @@ function App() {
                 <button type="button" className={`btn btn-sm ${activeTab === "manifest" ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => setActiveTab("manifest")}>Manifest</button>
               </div>
             </div>
-            <div className="topbar-subtitle">Switch between visual builder and generated artifacts.</div>
+            <div className="topbar-subtitle">New columns use all remaining space. Add menu now closes after selection.</div>
           </div>
 
-          {renderArtifactTab()}
+          {renderTabContent()}
         </main>
       </div>
 
@@ -1095,7 +1036,7 @@ function App() {
           <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
             <div className="settings-modal-header">
               <h3>Component settings</h3>
-              <button type="button" className="btn btn-sm btn-outline-danger" onClick={closeComponentSettings}>×</button>
+              <button type="button" className="btn btn-sm btn-outline-danger" onClick={closeComponentSettings}>x</button>
             </div>
 
             <div className="settings-modal-body">
@@ -1104,15 +1045,15 @@ function App() {
                   <label className="form-label mb-1">Text</label>
                   <textarea className="form-control form-control-sm mb-3" rows={4} value={draftComponent.props.text || ""} onChange={(e) => setDraftProp("text", e.target.value)} />
                   <label className="form-label mb-1">Alignment</label>
-                  <select className="form-select form-select-sm mb-3" value={findLabelFromMap(draftComponent.classList, textAlignmentMap, "Default")} onChange={(e) => replaceDraftClassMap(textAlignmentMap, e.target.value)}>
+                  <select className="form-select form-select-sm mb-3" value={Object.keys(textAlignmentMap).find((key) => textAlignmentMap[key] === (draftComponent.classList.find((item) => Object.values(textAlignmentMap).includes(item)) || "")) || "Default"} onChange={(e) => replaceDraftClassMap(textAlignmentMap, e.target.value)}>
                     {textAlignments.map((item) => <option key={item} value={item}>{item}</option>)}
                   </select>
                   <label className="form-label mb-1">Font size</label>
-                  <select className="form-select form-select-sm mb-3" value={findLabelFromMap(draftComponent.classList, fontSizeMap, "Default")} onChange={(e) => replaceDraftClassMap(fontSizeMap, e.target.value)}>
+                  <select className="form-select form-select-sm mb-3" value={Object.keys(fontSizeMap).find((key) => fontSizeMap[key] === (draftComponent.classList.find((item) => Object.values(fontSizeMap).includes(item)) || "")) || "Default"} onChange={(e) => replaceDraftClassMap(fontSizeMap, e.target.value)}>
                     {fontSizes.map((item) => <option key={item} value={item}>{item}</option>)}
                   </select>
                   <label className="form-label mb-1">Font weight</label>
-                  <select className="form-select form-select-sm mb-3" value={findLabelFromMap(draftComponent.classList, fontWeightMap, "Default")} onChange={(e) => replaceDraftClassMap(fontWeightMap, e.target.value)}>
+                  <select className="form-select form-select-sm mb-3" value={Object.keys(fontWeightMap).find((key) => fontWeightMap[key] === (draftComponent.classList.find((item) => Object.values(fontWeightMap).includes(item)) || "")) || "Default"} onChange={(e) => replaceDraftClassMap(fontWeightMap, e.target.value)}>
                     {fontWeights.map((item) => <option key={item} value={item}>{item}</option>)}
                   </select>
                 </>
@@ -1188,11 +1129,11 @@ function App() {
                   <label className="form-label mb-1">Button text</label>
                   <input className="form-control form-control-sm mb-3" value={draftComponent.props.buttonText || ""} onChange={(e) => setDraftProp("buttonText", e.target.value)} />
                   <label className="form-label mb-1">Rounded corners</label>
-                  <select className="form-select form-select-sm mb-3" value={findLabelFromMap(draftComponent.classList, roundedMap, "Default")} onChange={(e) => replaceDraftClassMap(roundedMap, e.target.value)}>
+                  <select className="form-select form-select-sm mb-3" value={Object.keys(roundedMap).find((key) => roundedMap[key] === (draftComponent.classList.find((item) => Object.values(roundedMap).includes(item)) || "")) || "Default"} onChange={(e) => replaceDraftClassMap(roundedMap, e.target.value)}>
                     {roundedOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                   </select>
                   <label className="form-label mb-1">Shadow</label>
-                  <select className="form-select form-select-sm mb-3" value={findLabelFromMap(draftComponent.classList, shadowMap, "Default")} onChange={(e) => replaceDraftClassMap(shadowMap, e.target.value)}>
+                  <select className="form-select form-select-sm mb-3" value={Object.keys(shadowMap).find((key) => shadowMap[key] === (draftComponent.classList.find((item) => Object.values(shadowMap).includes(item)) || "")) || "Default"} onChange={(e) => replaceDraftClassMap(shadowMap, e.target.value)}>
                     {shadowOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                   </select>
                 </>

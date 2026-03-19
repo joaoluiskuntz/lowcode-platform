@@ -58,12 +58,6 @@ body {
   margin-bottom: 10px;
 }
 
-.panel-help {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 10px;
-}
-
 .stack > * + * {
   margin-top: 10px;
 }
@@ -112,6 +106,10 @@ body {
 }
 
 .canvas-top-actions {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
   margin-bottom: 14px;
 }
 
@@ -130,6 +128,26 @@ body {
   padding: 12px;
   background: #f8fafc;
   margin-bottom: 16px;
+  position: relative;
+}
+
+.designer-row.drop-before::before,
+.designer-row.drop-after::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  background: #2563eb;
+  border-radius: 999px;
+}
+
+.designer-row.drop-before::before {
+  top: -3px;
+}
+
+.designer-row.drop-after::after {
+  bottom: -3px;
 }
 
 .designer-row-nested {
@@ -172,10 +190,29 @@ body {
   min-width: 0;
 }
 
-.designer-col-drop-shadow {
+.designer-col.drop-inside {
   border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.22), inset 0 0 0 1px rgba(37,99,235,0.25);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.18), inset 0 0 0 1px rgba(37,99,235,0.2);
   background: #f5f9ff;
+}
+
+.designer-col.drop-before::before,
+.designer-col.drop-after::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  background: #2563eb;
+  border-radius: 999px;
+}
+
+.designer-col.drop-before::before {
+  left: -3px;
+}
+
+.designer-col.drop-after::after {
+  right: -3px;
 }
 
 .designer-col-placeholder {
@@ -189,6 +226,12 @@ body {
   background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 10px, #f1f5f9 10px, #f1f5f9 20px);
   font-size: 28px;
   font-weight: 700;
+}
+
+.designer-col-placeholder.drop-inside {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.18), inset 0 0 0 1px rgba(37,99,235,0.2);
+  background: #f5f9ff;
 }
 
 .designer-col-header {
@@ -238,7 +281,7 @@ body {
   background: white;
   border: 1px solid #dfe5ee;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 25px rgba(15,23,42,0.12);
   padding: 12px;
 }
 
@@ -261,10 +304,6 @@ body {
   background: #fff;
   margin-bottom: 10px;
   cursor: grab;
-}
-
-.designer-component:active {
-  cursor: grabbing;
 }
 
 .designer-component-header {
@@ -323,7 +362,7 @@ body {
 .settings-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15,23,42,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -337,7 +376,7 @@ body {
   overflow: auto;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 20px 60px rgba(15,23,42,0.25);
   border: 1px solid #dfe5ee;
 }
 
