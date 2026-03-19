@@ -1,0 +1,131 @@
+{
+  "app": {
+    "id": "state-binding-demo",
+    "name": "State Binding Demo"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "root": {
+        "bindings": {},
+        "children": [
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "intro-card",
+                "props": {
+                  "body": "Type your name to update runtime state. The text below resolves from a safe state.* binding.",
+                  "title": "State and bindings"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "input",
+                "events": {},
+                "kind": "component",
+                "nodeId": "customer-name-input",
+                "props": {
+                  "label": "Customer name",
+                  "placeholder": "Type your name",
+                  "stateKey": "customerName"
+                }
+              },
+              {
+                "bindings": {
+                  "text": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "customer-name-preview",
+                "props": {
+                  "text": "Waiting for input"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "button",
+                "events": {
+                  "onClick": [
+                    {
+                      "payload": {
+                        "stateKey": "customerName",
+                        "value": "Taylor"
+                      },
+                      "type": "setState"
+                    }
+                  ]
+                },
+                "kind": "component",
+                "nodeId": "preset-name",
+                "props": {
+                  "label": "Use preset name",
+                  "variant": "primary"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "md": 7,
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-home-root-child-0"
+          },
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {
+                  "body": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "mirror-card",
+                "props": {
+                  "body": "No value yet",
+                  "title": "Live preview"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "md": 5,
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-home-root-child-1"
+          }
+        ],
+        "classList": [],
+        "containerType": "row",
+        "kind": "container",
+        "nodeId": "screen-home-root"
+      },
+      "title": "Home"
+    }
+  ],
+  "theme": {
+    "bootstrapTheme": "default",
+    "borderRadius": "md",
+    "primaryColor": "#198754"
+  },
+  "version": "1.0.0"
+}

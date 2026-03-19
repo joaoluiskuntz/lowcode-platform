@@ -18,14 +18,14 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
     case "text": {
       const text = resolveBoundString(node, "text", runtime.stateStore, asString(node.props.text));
 
-      return <p className={classes}>{text}</p>;
+      return <p className={["lc-text", classes].filter(Boolean).join(" ")}>{text}</p>;
     }
 
     case "button": {
       const label = resolveBoundString(node, "label", runtime.stateStore, asString(node.props.label, "Button"));
       const variant = asString(node.props.variant, "primary");
       const size = asString(node.props.size, "");
-      const buttonClass = ["btn", `btn-${variant}`, size ? `btn-${size}` : "", classes]
+      const buttonClass = ["btn", `btn-${variant}`, size ? `btn-${size}` : "", "shadow-sm", classes]
         .filter(Boolean)
         .join(" ");
 
@@ -40,7 +40,11 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const src = resolveBoundString(node, "src", runtime.stateStore, asString(node.props.src));
       const alt = resolveBoundString(node, "alt", runtime.stateStore, asString(node.props.alt, ""));
 
-      return <img className={classes} src={src} alt={alt} />;
+      return (
+        <div className={["lc-image-wrapper", classes].filter(Boolean).join(" ")}>
+          <img className="img-fluid rounded-4 shadow-sm" src={src} alt={alt} />
+        </div>
+      );
     }
 
     case "input": {
@@ -57,10 +61,10 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const currentValue = resolveBoundString(node, "value", runtime.stateStore, baseValue);
 
       return (
-        <div className={classes}>
-          {label ? <label className="form-label">{label}</label> : null}
+        <div className={["lc-input-group", classes].filter(Boolean).join(" ")}>
+          {label ? <label className="form-label fw-semibold">{label}</label> : null}
           <input
-            className="form-control"
+            className="form-control form-control-lg shadow-sm"
             value={currentValue}
             placeholder={placeholder}
             onChange={(event) => {
@@ -77,10 +81,10 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const body = resolveBoundString(node, "body", runtime.stateStore, asString(node.props.body, ""));
 
       return (
-        <div className={["card", classes].filter(Boolean).join(" ")}>
-          <div className="card-body">
-            {title ? <h5 className="card-title">{title}</h5> : null}
-            {body ? <p className="card-text mb-0">{body}</p> : null}
+        <div className={["card", "border-0", "shadow-sm", "h-100", "lc-card", classes].filter(Boolean).join(" ")}>
+          <div className="card-body p-4">
+            {title ? <h5 className="card-title mb-2">{title}</h5> : null}
+            {body ? <p className="card-text mb-0 text-muted">{body}</p> : null}
           </div>
         </div>
       );
@@ -90,9 +94,11 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const items = Array.isArray(node.props.items) ? node.props.items : [];
 
       return (
-        <ul className={classes}>
+        <ul className={["list-group", "list-group-flush", "shadow-sm", "rounded-4", classes].filter(Boolean).join(" ")}>
           {items.map((item, index) => (
-            <li key={`${node.nodeId}-${index}`}>{String(item)}</li>
+            <li key={`${node.nodeId}-${index}`} className="list-group-item py-3">
+              {String(item)}
+            </li>
           ))}
         </ul>
       );

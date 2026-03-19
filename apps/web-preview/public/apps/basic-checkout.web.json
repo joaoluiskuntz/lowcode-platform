@@ -1,0 +1,231 @@
+{
+  "app": {
+    "id": "self-checkout-demo",
+    "name": "Self Checkout Demo"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "root": {
+        "bindings": {},
+        "children": [
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "welcome-card",
+                "props": {
+                  "body": "Type your name below. The value is stored in runtime state and rendered from compiled bindings.",
+                  "title": "Welcome"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "input",
+                "events": {},
+                "kind": "component",
+                "nodeId": "customer-name-input",
+                "props": {
+                  "label": "Customer name",
+                  "placeholder": "Type your name",
+                  "stateKey": "customerName"
+                }
+              },
+              {
+                "bindings": {
+                  "text": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "customer-name-preview",
+                "props": {
+                  "text": ""
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "button",
+                "events": {
+                  "onClick": [
+                    {
+                      "payload": {
+                        "target": "basket"
+                      },
+                      "type": "navigate"
+                    }
+                  ]
+                },
+                "kind": "component",
+                "nodeId": "start-button",
+                "props": {
+                  "label": "Start Checkout",
+                  "size": "lg",
+                  "variant": "primary"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "md": 8,
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-home-root-child-0"
+          },
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {
+                  "body": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "side-card",
+                "props": {
+                  "body": "",
+                  "title": "Live state"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "list",
+                "events": {},
+                "kind": "component",
+                "nodeId": "features-list",
+                "props": {
+                  "items": [
+                    "Schema validation",
+                    "IR compilation",
+                    "React renderer",
+                    "Runtime state bindings"
+                  ]
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "md": 4,
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-home-root-child-1"
+          }
+        ],
+        "classList": [],
+        "containerType": "row",
+        "kind": "container",
+        "nodeId": "screen-home-root"
+      },
+      "title": "Home"
+    },
+    {
+      "id": "basket",
+      "root": {
+        "bindings": {},
+        "children": [
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "basket-title",
+                "props": {
+                  "text": "Basket"
+                }
+              },
+              {
+                "bindings": {
+                  "text": "state.customerName"
+                },
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "basket-customer-name",
+                "props": {
+                  "text": ""
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "basket-card",
+                "props": {
+                  "body": "Navigation is working and state is preserved across screens.",
+                  "title": "Basket screen reached"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "button",
+                "events": {
+                  "onClick": [
+                    {
+                      "payload": {
+                        "target": "home"
+                      },
+                      "type": "navigate"
+                    }
+                  ]
+                },
+                "kind": "component",
+                "nodeId": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-basket-root-child-0"
+          }
+        ],
+        "classList": [],
+        "containerType": "row",
+        "kind": "container",
+        "nodeId": "screen-basket-root"
+      },
+      "title": "Basket"
+    }
+  ],
+  "theme": {
+    "bootstrapTheme": "default",
+    "borderRadius": "md",
+    "primaryColor": "#0d6efd"
+  },
+  "version": "1.0.0"
+}

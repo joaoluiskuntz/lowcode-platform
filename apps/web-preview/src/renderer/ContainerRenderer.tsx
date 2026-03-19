@@ -42,11 +42,11 @@ export function ContainerRenderer({ node }: ContainerRendererProps) {
   const className = [...node.classList];
 
   if (node.containerType === "row") {
-    className.unshift("row", "g-3");
+    className.unshift("row", "g-4", "align-items-stretch", "lc-row");
   }
 
   if (node.containerType === "column") {
-    className.unshift(getColumnClasses(node));
+    className.unshift(getColumnClasses(node), "lc-column");
   }
 
   return (

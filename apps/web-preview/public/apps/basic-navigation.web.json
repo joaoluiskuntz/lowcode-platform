@@ -1,0 +1,135 @@
+{
+  "app": {
+    "id": "basic-navigation-demo",
+    "name": "Basic Navigation Demo"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "root": {
+        "bindings": {},
+        "children": [
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "card",
+                "events": {},
+                "kind": "component",
+                "nodeId": "home-card",
+                "props": {
+                  "body": "This example focuses on screen-to-screen navigation using compiled actions.",
+                  "title": "Navigation demo"
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "button",
+                "events": {
+                  "onClick": [
+                    {
+                      "payload": {
+                        "target": "details"
+                      },
+                      "type": "navigate"
+                    }
+                  ]
+                },
+                "kind": "component",
+                "nodeId": "go-details",
+                "props": {
+                  "label": "Go to Details",
+                  "size": "lg",
+                  "variant": "primary"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "md": 8,
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-home-root-child-0"
+          }
+        ],
+        "classList": [],
+        "containerType": "row",
+        "kind": "container",
+        "nodeId": "screen-home-root"
+      },
+      "title": "Home"
+    },
+    {
+      "id": "details",
+      "root": {
+        "bindings": {},
+        "children": [
+          {
+            "bindings": {},
+            "children": [
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "text",
+                "events": {},
+                "kind": "component",
+                "nodeId": "details-text",
+                "props": {
+                  "text": "You reached the details screen."
+                }
+              },
+              {
+                "bindings": {},
+                "classList": [],
+                "componentType": "button",
+                "events": {
+                  "onClick": [
+                    {
+                      "payload": {
+                        "target": "home"
+                      },
+                      "type": "navigate"
+                    }
+                  ]
+                },
+                "kind": "component",
+                "nodeId": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                }
+              }
+            ],
+            "classList": [],
+            "containerType": "column",
+            "kind": "container",
+            "layout": {
+              "span": {
+                "xs": 12
+              }
+            },
+            "nodeId": "screen-details-root-child-0"
+          }
+        ],
+        "classList": [],
+        "containerType": "row",
+        "kind": "container",
+        "nodeId": "screen-details-root"
+      },
+      "title": "Details"
+    }
+  ],
+  "theme": {
+    "bootstrapTheme": "default",
+    "borderRadius": "md",
+    "primaryColor": "#0d6efd"
+  },
+  "version": "1.0.0"
+}

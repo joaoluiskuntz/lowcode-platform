@@ -1,16 +1,126 @@
 :root {
-  font-family: Inter, system-ui, Arial, sans-serif;
+  --lc-bg: #f4f7fb;
+  --lc-surface: #ffffff;
+  --lc-border: rgba(15, 23, 42, 0.08);
+  --lc-text: #0f172a;
+  --lc-muted: #64748b;
+  --lc-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
 body {
-  background: #f8f9fa;
-  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(13, 110, 253, 0.08), transparent 22rem),
+    linear-gradient(180deg, #f8fbff 0%, var(--lc-bg) 100%);
+  color: var(--lc-text);
+  min-height: 100vh;
 }
 
 .preview-shell {
   min-height: 100vh;
 }
 
-img {
-  display: block;
+.preview-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 1.5rem;
+}
+
+.preview-eyebrow,
+.lc-screen-kicker {
+  color: #0d6efd;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.artifact-picker {
+  min-width: min(100%, 22rem);
+}
+
+.preview-meta-card {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border: 1px solid var(--lc-border);
+  border-radius: 1rem;
+  height: 100%;
+  padding: 1rem 1.125rem;
+}
+
+.preview-meta-label {
+  color: var(--lc-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-meta-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+
+.lc-screen {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 1.5rem;
+}
+
+.lc-row {
+  margin-bottom: 0;
+}
+
+.lc-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lc-text {
+  color: var(--lc-text);
+  font-size: 1rem;
+  line-height: 1.65;
+  margin-bottom: 0;
+}
+
+.lc-card {
+  border-radius: 1.25rem;
+}
+
+.lc-card .card-title {
+  font-weight: 700;
+}
+
+.lc-input-group,
+.lc-image-wrapper {
+  margin-bottom: 0;
+}
+
+.form-control,
+.form-select,
+.btn,
+.list-group-item,
+.card {
+  border-radius: 1rem;
+}
+
+.form-control,
+.form-select {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.form-control:focus,
+.form-select:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
+  border-color: rgba(13, 110, 253, 0.45);
+}
+
+.list-group-item {
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 991.98px) {
+  .preview-header .card-body,
+  .lc-screen .card-body {
+    padding: 1.5rem !important;
+  }
 }

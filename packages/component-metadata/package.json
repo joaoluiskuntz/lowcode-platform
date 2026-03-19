@@ -1,0 +1,13 @@
+{
+  "name": "@lowcode/component-metadata",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node -e \"console.log('No tests for @lowcode/component-metadata yet')\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

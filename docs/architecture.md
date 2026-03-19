@@ -19,8 +19,9 @@ Transforms valid DSL to IR and generates package artifacts.
 ### 5. Runtime / Renderer
 Consumes IR and executes the application on target platforms.
 
-## Current implemented target
+## Current implemented targets
 - Web preview runtime using React + Bootstrap
+- Authoring studio foundation using a local compiler service and compiled IR preview
 
 ## Planned target
 - Android native renderer
@@ -53,6 +54,13 @@ Consumes IR and executes the application on target platforms.
 - stable serialization
 - hashing/manifest
 
+### packages/component-metadata
+- machine-readable component catalog
+- properties and defaults
+- event support
+- accessibility requirements
+- platform support metadata
+
 ### apps/compiler-cli
 - local compilation entrypoint
 
@@ -60,11 +68,15 @@ Consumes IR and executes the application on target platforms.
 - React runtime for compiled IR
 - Bootstrap-based layout rendering
 - preview/dev visualization
-- safe binding resolution for `state.*` dot-path expressions
-- declarative action execution for navigation and preview-state updates
+- selection of compiled artifacts through an index and query parameter
+
+### apps/authoring-studio
+- minimal editor foundation for DSL JSON
+- local compiler-backed preview workflow
+- renders only compiled IR in the preview panel
 
 ## Current end-to-end flow
-Author edits DSL → compiler validates and transforms → main.web.json generated → web-preview loads main.web.json → React renderer displays UI
+Author edits DSL → compiler validates and transforms → main.web.json generated → web-preview loads compiled artifact → React renderer displays UI
 
 ## Binding model
 The preview runtime supports a minimal deterministic binding model:
@@ -79,8 +91,19 @@ Binding rules:
 - missing paths fall back safely
 - no JavaScript evaluation is allowed
 
+## Component metadata model
+A formal component metadata catalog defines:
+- properties
+- defaults
+- bindability
+- event support
+- accessibility requirements
+- platform support
+
+The catalog is independent from runtime rendering code so it can be consumed later by an editor or design-time tooling.
+
 ## Future major capabilities
-- low-code visual authoring studio
+- richer visual authoring
 - Android renderer
 - hardware abstraction layer
 - checkout domain model
