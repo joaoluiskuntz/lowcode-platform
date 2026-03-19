@@ -16,15 +16,27 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
 
   switch (node.componentType) {
     case "text":
-      return <div className={classes} data-node-id={node.nodeId}>{asString(node.props.text)}</div>;
+      return (
+        <div className={classes} data-node-id={node.nodeId}>
+          {asString(node.props.text)}
+        </div>
+      );
 
     case "button": {
       const label = asString(node.props.label, "Button");
       const variant = asString(node.props.variant, "primary");
       const size = asString(node.props.size, "");
-      const buttonClass = ["btn", `btn-${variant}`, size ? `btn-${size}` : "", classes].filter(Boolean).join(" ");
+      const buttonClass = ["btn", `btn-${variant}`, size ? `btn-${size}` : "", classes]
+        .filter(Boolean)
+        .join(" ");
+
       return (
-        <button type="button" className={buttonClass} data-node-id={node.nodeId} onClick={() => executeActions(onClick)}>
+        <button
+          type="button"
+          className={buttonClass}
+          data-node-id={node.nodeId}
+          onClick={() => executeActions(onClick)}
+        >
           {label}
         </button>
       );
@@ -33,7 +45,14 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
     case "image": {
       const src = asString(node.props.src);
       const alt = asString(node.props.alt, "");
-      return <img src={src} alt={alt} className={["img-fluid", classes].filter(Boolean).join(" ")} data-node-id={node.nodeId} />;
+      return (
+        <img
+          src={src}
+          alt={alt}
+          className={["img-fluid", classes].filter(Boolean).join(" ")}
+          data-node-id={node.nodeId}
+        />
+      );
     }
 
     case "input": {
@@ -42,6 +61,7 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       const stateKey = asString(node.props.stateKey, node.nodeId);
       const value = runtime.stateStore[stateKey];
       const currentValue = typeof value === "string" ? value : "";
+
       return (
         <div className={classes} data-node-id={node.nodeId}>
           {label ? <label className="form-label">{label}</label> : null}
@@ -76,7 +96,9 @@ export function ComponentRenderer({ node }: ComponentRendererProps) {
       return (
         <ul className={["list-group", classes].filter(Boolean).join(" ")} data-node-id={node.nodeId}>
           {items.map((item, index) => (
-            <li key={`${node.nodeId}-${index}`} className="list-group-item">{String(item)}</li>
+            <li key={`${node.nodeId}-${index}`} className="list-group-item">
+              {String(item)}
+            </li>
           ))}
         </ul>
       );

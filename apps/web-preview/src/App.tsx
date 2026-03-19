@@ -34,7 +34,11 @@ export default function App() {
   }, [app, currentScreenId]);
 
   if (error) {
-    return <div className="container py-4"><div className="alert alert-danger">{error}</div></div>;
+    return (
+      <div className="container py-4">
+        <div className="alert alert-danger">{error}</div>
+      </div>
+    );
   }
 
   if (!app || !currentScreen) {
@@ -59,9 +63,7 @@ export default function App() {
               <h1 className="h4 mb-0">{app.app.name}</h1>
               <small className="text-muted">Screen: {currentScreen.title}</small>
             </div>
-            <div>
-              <span className="badge text-bg-secondary">schema {app.version}</span>
-            </div>
+            <span className="badge text-bg-secondary">schema {app.version}</span>
           </div>
         </header>
 

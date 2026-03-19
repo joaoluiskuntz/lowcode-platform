@@ -9,17 +9,23 @@ export function useActionExecutor() {
       switch (action.type) {
         case "navigate": {
           const target = action.payload.target;
-          if (typeof target === "string") runtime.navigate(target);
+          if (typeof target === "string") {
+            runtime.navigate(target);
+          }
           break;
         }
         case "setState": {
           const key = action.payload.stateKey;
-          if (typeof key === "string") runtime.setStateValue(key, action.payload.value);
+          if (typeof key === "string") {
+            runtime.setStateValue(key, action.payload.value);
+          }
           break;
         }
         case "showMessage": {
           const message = action.payload.message;
-          if (typeof message === "string") window.alert(message);
+          if (typeof message === "string") {
+            window.alert(message);
+          }
           break;
         }
         case "callService": {
