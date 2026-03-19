@@ -1,0 +1,17 @@
+{
+    "name": "@lowcode/compiler-cli",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "bin": {
+      "lowcode-compiler": "dist/index.js"
+    },
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "test": "echo No tests yet",
+      "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "dependencies": {
+      "@lowcode/compiler": "1.0.0"
+    }
+  }

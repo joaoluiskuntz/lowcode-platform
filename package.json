@@ -1,0 +1,20 @@
+{
+  "name": "lowcode-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -ws",
+    "test": "npm run test -ws",
+    "typecheck": "npm run typecheck -ws",
+    "clean": "powershell -Command \"Get-ChildItem -Path . -Include dist,node_modules -Recurse -Directory | Remove-Item -Recurse -Force\""
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

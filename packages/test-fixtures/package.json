@@ -1,0 +1,11 @@
+{
+    "name": "@lowcode/test-fixtures",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "test": "echo No tests yet",
+      "typecheck": "tsc -p tsconfig.json --noEmit"
+    }
+  }

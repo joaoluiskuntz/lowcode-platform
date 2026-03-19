@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.0.0",
+  "app": {
+    "id": "self-checkout-demo",
+    "name": "Self Checkout Demo"
+  },
+  "theme": {
+    "bootstrapTheme": "default",
+    "primaryColor": "#0d6efd",
+    "borderRadius": "md"
+  },
+  "screens": [
+    {
+      "id": "home",
+      "title": "Home",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 8
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "welcome-card",
+                "props": {
+                  "title": "Welcome",
+                  "body": "Scan your items to begin"
+                }
+              },
+              {
+                "type": "text",
+                "id": "instructions",
+                "props": {
+                  "text": "This screen is rendered from your compiled low-code artifact."
+                }
+              },
+              {
+                "type": "button",
+                "id": "start-button",
+                "props": {
+                  "label": "Start Checkout",
+                  "variant": "primary",
+                  "size": "lg"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "basket"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "column",
+            "span": {
+              "xs": 12,
+              "md": 4
+            },
+            "children": [
+              {
+                "type": "card",
+                "id": "side-card",
+                "props": {
+                  "title": "Status",
+                  "body": "Renderer connected successfully."
+                }
+              },
+              {
+                "type": "list",
+                "id": "features-list",
+                "props": {
+                  "items": [
+                    "Schema validation",
+                    "IR compilation",
+                    "React renderer",
+                    "Screen navigation"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "basket",
+      "title": "Basket",
+      "layout": {
+        "type": "row",
+        "children": [
+          {
+            "type": "column",
+            "span": {
+              "xs": 12
+            },
+            "children": [
+              {
+                "type": "text",
+                "id": "basket-title",
+                "props": {
+                  "text": "Basket"
+                }
+              },
+              {
+                "type": "card",
+                "id": "basket-card",
+                "props": {
+                  "title": "Basket screen reached",
+                  "body": "Navigation is working."
+                }
+              },
+              {
+                "type": "button",
+                "id": "back-home",
+                "props": {
+                  "label": "Back to Home",
+                  "variant": "secondary"
+                },
+                "events": {
+                  "onClick": [
+                    {
+                      "type": "navigate",
+                      "target": "home"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+    "name": "@lowcode/compiler",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "test": "vitest run",
+      "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "dependencies": {
+      "@lowcode/dsl-schema": "1.0.0",
+      "@lowcode/ir": "1.0.0",
+      "@lowcode/validator": "1.0.0"
+    }
+  }

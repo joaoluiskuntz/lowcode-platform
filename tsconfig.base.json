@@ -1,0 +1,25 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "declaration": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lowcode/dsl-schema": ["packages/dsl-schema/src"],
+      "@lowcode/validator": ["packages/validator/src"],
+      "@lowcode/ir": ["packages/ir/src"],
+      "@lowcode/compiler": ["packages/compiler/src"],
+      "@lowcode/shared": ["packages/shared/src"],
+      "@lowcode/package-format": ["packages/package-format/src"],
+      "@lowcode/test-fixtures": ["packages/test-fixtures/src"]
+    },
+    "outDir": "dist"
+  }
+}

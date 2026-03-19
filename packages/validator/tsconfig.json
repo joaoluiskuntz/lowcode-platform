@@ -1,0 +1,12 @@
+﻿{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": "../../",
+    "paths": {
+      "@lowcode/dsl-schema": ["packages/dsl-schema/dist"]
+    }
+  },
+  "include": ["src/**/*"]
+}
