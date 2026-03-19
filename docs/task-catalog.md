@@ -14,44 +14,6 @@ How to use:
 
 ---
 
-# Task 01 — Developer Experience: one-command preview workflow
-
-## Goal
-Create a single command that:
-1. compiles the DSL example
-2. copies the generated main.web.json into apps/web-preview/public
-3. starts the React preview
-
-## Why this matters
-Right now the workflow is manual and repetitive. This slows iteration and increases the chance of mistakes. A one-command developer workflow is the highest-value short-term improvement.
-
-## Expected result
-A command like:
-- npm run dev:preview
-
-That command should:
-- build or reuse the compiler
-- compile the sample DSL
-- copy the artifact
-- run the preview app
-
-## Constraints
-- preserve current monorepo structure
-- do not bypass the compiler
-- keep web-preview loading compiled IR from main.web.json
-
-## Likely files to change
-- root package.json
-- apps/compiler-cli package or scripts
-- apps/web-preview package or scripts
-- optionally add a small automation script under scripts/
-
-## Done when
-- one command runs the whole local preview flow
-- documentation is updated
-- the command works on Windows PowerShell
-
----
 
 # Task 02 — Improve compiler CLI robustness for BOM-safe JSON parsing
 

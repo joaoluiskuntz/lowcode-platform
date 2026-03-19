@@ -1,4 +1,4 @@
-# Current Status
+﻿# Current Status
 
 ## Working now
 - monorepo structure
@@ -16,6 +16,7 @@
 - Bootstrap-style row/column layout
 - basic component rendering
 - navigation between screens
+- one-command preview workflow via `npm run dev:preview`
 
 ## Verified behaviors
 - compile example DSL successfully
@@ -23,6 +24,7 @@
 - render first screen
 - navigate between Home and Basket
 - display cards, text, list, button
+- compile sample DSL, copy generated web IR, and start preview with one command
 
 ## Not implemented yet
 - authoring studio
@@ -36,7 +38,6 @@
 - checkout-specific business domain runtime
 
 ## Technical debt / cleanup
-- improve dev scripts
 - add automated tests for preview renderer
 - improve asset handling
 - improve package build ergonomics

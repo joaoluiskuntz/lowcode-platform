@@ -1,11 +1,11 @@
-# Recommended Next Steps
+﻿# Recommended Next Steps
 
 ## Short-term
-1. add one-command dev workflow
-2. add renderer tests
-3. add richer sample DSLs
-4. add state bindings support
-5. implement callService preview behavior
+1. add renderer tests
+2. add richer sample DSLs
+3. add state bindings support
+4. implement callService preview behavior
+5. add watch mode for compiler + preview sync
 
 ## Medium-term
 1. create authoring studio foundation
@@ -15,9 +15,8 @@
 5. begin Android renderer spike
 
 ## Suggested priority order
-1. developer experience automation
-2. binding engine
-3. richer actions
-4. authoring metadata model
-5. checkout domain model
-6. Android runtime foundation
+1. binding engine
+2. richer actions
+3. authoring metadata model
+4. checkout domain model
+5. Android runtime foundation
